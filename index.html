@@ -1,0 +1,79 @@
+<h1>Flex Mud Client Test</h1>
+
+<p>
+	<a href="client/index.html">Flex Mud Client</a>
+</p>
+
+<p>
+	This client is currently proxying to the actual <b>live</b> version of The Forrests Edge (MUD). Please play nice!
+</p>
+
+<h2>Regexp Reminder for Rtards</h2>
+
+<p>
+. = matches anything<br>
+\w = word chars (a-z, A-Z or 0-9)<br>
+\d = any digit<br>
+\s = white space<br>
+^ = start of the line<br>
+$ = end of the line<br>
+\ = escapes special characters i.e. ( ) . [ ] | ^ $ etc etc<br>
+</p>
+
+<p>
+* = previous thing repeated 0 or more times<br>
++ = previos thing repeated 1 or more times<br>
+? = previous thing repeated 0 or 1 times<br>
+{x} = previous thing repeated x times<br>
+{x,} = previous thing repeated x or more times<br>
+{x,y} = previous thing repeated x to y times<br>
+</p>
+
+<p>
+| = or i.e cat|dog = cat or dog<br>
+() = group things togeather i.e c(at|og) matches cat or cog. also anything inside a match is returned (can be used via %1 .. %n)<br>
+[] = defines a character class to match. i.e [aeiou] will match any vowel. you can also use ranges with a hyphen eg. [0-9]<br>
+</p>
+
+<h2>Triggers</h2>
+<p>
+If you grouping in your pattern you can use the resulting match in your command<br>
+
+i.e  pattern : ^grexil orders you to '(.*)'$<br> 
+matches: grexil orders you to 'scrub the floors'<br>
+%1 = scrub the floors<br>
+command: say no way will I %1 <br>
+produces: "say no way will I scrub the floors"<br>
+</p>
+
+<h2>Aliases</h2>
+<p>
+An alias matches the first word you enter in a command. any additional words are taken as parameters<br>
+i.e an alias for 'peer' will match "peer grexil" but not "grexil peer" etc.<br>
+in the command you can use the parameters via %1 .. %n<br>
+i.e if your command is "emote peers at %1 warily" then "peer grexil" would be converted to "emote peers at grexil warily"<br>
+</p>
+
+<h2>Functions</h2>
+There are a few functions that have been implemented. User defined functions can be created via aliases...
+Parameters to functions must be comma seperated and can either be:<br>
+<li>A quoted string. eg 'grexil'</li> 
+<li>A number. i.e. 3.14</li>
+<li>A variable name. eg x</li>
+<li>Another function eg. add(2,3)</li>
+Functions can be used in two ways...<br>
+<h3>As a command</h3>
+<p>
+if a command starts with a / it is interperated as a function. i.e /set('x',3) sets the variable x to 3.<br>
+</p>
+<h3>Inline</h3>
+<p>
+a function can be placed inline in a command by putting it inside %(). i.e %(get('x')) will get the value of the variable x.<br>
+e.g. command: "I have %(add(x,2)) apples" would produce "I have 5 apples" if x was set to 3.<br>
+</p>
+<h3>Aliases as functions</h3>
+<p>
+Aliases can be treated as functions.<br>
+i.e the peer alias above could be used either via "/peer('grexil')" or inline as "%(peer('grexil'))" tho in this case the inline use probably wouldn't be so useful.<br>
+</p>
+

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox
+	xmlns:flexlib="http://code.google.com/p/flexlib/"	
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:mate="http://mate.asfusion.com/"	
+	creationComplete="init()" 
+	width="100%"
+	height="100%"
+>
+	
+	<mx:Script>
+		<![CDATA[
+			import com.simian.profile.ProfileEvent;
+			import flexlib.mdi.containers.MDIWindow;
+					
+			import com.simian.window.TelnetWindow;
+			import com.simian.window.WindowEvent;
+			
+			import flexlib.mdi.events.MDIManagerEvent;
+	
+			import mx.events.ItemClickEvent;
+			
+			import com.simian.telnet.*;
+	
+	
+			// an array for the buttons in the top nav (not sure why, just pissing around with em atm)
+			[Bindable (event="updatedMenuBar")]
+			private var topNavButtons : Array = ['Connect','Alias Config', 'Trigger Config','Save Profile','Load Profile','Config']
+			
+			
+			private function newWindow(event:WindowEvent) : void {				
+				mdiCanvas.windowManager.add(event.window);
+				event.window.getFocus();
+				var winEvent : WindowEvent = new WindowEvent(WindowEvent.LOAD_WINDOW_SETTINGS);				
+				winEvent.window = event.window;
+				dispatchEvent(winEvent);																								
+			}
+
+			private function closeWindows(event:WindowEvent = null) : void {				
+				mdiCanvas.windowManager.removeAll();																										
+			}
+			
+	
+			private function windowUpdated(event: MDIManagerEvent) : void {					
+				var winEvent : WindowEvent = new WindowEvent(WindowEvent.STORE_WINDOW_SETTINGS);				
+				winEvent.window = event.window;
+				dispatchEvent(winEvent);
+			}
+		
+			private function init() : void {
+				// add listeners for window moving / resizing so we can dispatch them as MATE events
+				mdiCanvas.windowManager.addEventListener(MDIManagerEvent.WINDOW_DRAG_END,windowUpdated);
+				mdiCanvas.windowManager.addEventListener(MDIManagerEvent.WINDOW_RESIZE_END,windowUpdated);
+				
+			}			
+	
+	
+		    // Event handler function to print a message
+		    // describing the selected Button control.
+			private function clickHandler(event:ItemClickEvent):void {
+			    
+			    var mdiEvent : Event;
+			    
+			    switch (event.label) {
+			    	
+			    	case 'Connect':
+						connect();
+						topNavButtons[0] = 'Disconnect';
+						dispatchEvent(new Event("updatedMenuBar"));	    	
+			    	break;
+			    	
+			    	case 'Disconnect':
+				    	disconnect();
+						topNavButtons[0] = 'Connect';
+						dispatchEvent(new Event("updatedMenuBar"));	    	
+			    	break;
+			    	
+			    	case 'Alias Config':				
+						mdiEvent = new WindowEvent(WindowEvent.OPEN_ALIAS_WINDOW);							
+						dispatchEvent(mdiEvent);					 				   	    	
+			    	break;
+		
+			    	case 'Trigger Config':				
+						mdiEvent = new WindowEvent(WindowEvent.OPEN_TRIGGER_WINDOW);							
+						dispatchEvent(mdiEvent);					 				   	    	
+			    	break;
+
+			    	case 'Save Profile':				
+						mdiEvent = new WindowEvent(ProfileEvent.SAVE_PROFILE);							
+						dispatchEvent(mdiEvent);					 				   	    	
+			    	break;
+
+			    	case 'Load Profile':				
+						mdiEvent = new WindowEvent(ProfileEvent.LOAD_PROFILE);							
+						dispatchEvent(mdiEvent);					 				   	    	
+			    	break;			    			
+			    	
+			    	case 'Config':				
+						mdiEvent = new WindowEvent(WindowEvent.OPEN_TELNET_SETTINGS_WINDOW);							
+						dispatchEvent(mdiEvent);					 				   	    	
+			    	break;			    			
+			    		    	
+			    	
+			    }
+			    
+		    }	
+	
+			private function connect() : void {
+				var telnetConnectEvent : TelnetConnectEvent = new TelnetConnectEvent(TelnetConnectEvent.CONNECT);		
+				telnetConnectEvent.serverURL = ExternalInterface.call("window.location.hostname.toString");
+				telnetConnectEvent.portNumber = 4000;
+				dispatchEvent(telnetConnectEvent);																	
+			}
+		
+			private function disconnect() : void {
+				var telnetConnectEvent : TelnetConnectEvent = new TelnetConnectEvent(TelnetConnectEvent.DISCONNECT);		
+				dispatchEvent(telnetConnectEvent);														
+			}
+			
+		]]>
+	</mx:Script>		
+
+	<!-- Listen for MDI Events -->		
+	<mate:Listener type="{WindowEvent.NEW_WINDOW}" receive="newWindow(event)"  />				
+	<mate:Listener type="{WindowEvent.CLOSE_WINDOWS}" receive="closeWindows(event)"  />
+
+
+	<mx:ApplicationControlBar width="100%" cornerRadius="0">
+		<mx:ButtonBar itemClick="clickHandler(event);" dataProvider="{topNavButtons}" id="buttons" />	
+	</mx:ApplicationControlBar>
+
+	<flexlib:MDICanvas 
+		id="mdiCanvas" 
+		horizontalScrollPolicy="off" 
+		verticalScrollPolicy="off"
+		width="100%" 
+		height="100%" 
+		backgroundColor="#FFFFFF" 
+		backgroundAlpha="0" 
+	/>
+	
+</mx:VBox>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EventMap
+   xmlns:mx="http://www.adobe.com/2006/mxml"
+   xmlns="http://mate.asfusion.com/">
+
+	<mx:Script>
+		<![CDATA[
+			import com.simian.scripting.ScriptingModel;
+			import com.simian.profile.UserModel;						
+			import com.simian.telnet.TelnetEvent;			
+		]]>
+	</mx:Script>
+
+
+	<Debugger level="{Debugger.ALL}"  /> 
+	
+
+	<!-- Injectors -->	
+	<Injectors target="{ScriptingModel}">
+		<PropertyInjector targetKey="aAlias" source="{UserModel}" sourceKey="aAlias" />
+		<PropertyInjector targetKey="aTrigger" source="{UserModel}" sourceKey="aTrigger" />
+	</Injectors>
+	
+	
+ 	<EventHandlers type="{TelnetEvent.SEND_DATA}" >
+		<MethodInvoker generator="{ScriptingModel}" method="processCommand" arguments="{event.data}" />
+		<MethodInvoker generator="{ScriptingModel}" method="checkAliases" arguments="{[lastReturn,'user']}" />							 					
+	</EventHandlers>
+
+	<EventHandlers type="{TelnetEvent.SEND_TRIGGER_DATA}" >
+		<MethodInvoker generator="{ScriptingModel}" method="processCommand" arguments="{event.data}" />
+		<MethodInvoker generator="{ScriptingModel}" method="checkAliases" arguments="{[lastReturn,'trigger']}" />							 					
+	</EventHandlers>			
+
+	
+	<EventHandlers type="{TelnetEvent.PARSE_PROMPT_DATA}">
+		<MethodInvoker generator="{ScriptingModel}" method="checkPrompt" arguments="{event.data}" />
+	</EventHandlers>	
+	
+	<EventHandlers type="{TelnetEvent.PARSE_LINE_DATA}">		
+		<MethodInvoker generator="{ScriptingModel}" method="checkLine" arguments="{event.data}" />
+	</EventHandlers>	
+
+	<EventHandlers type="{TelnetEvent.PARSE_BLOCK_DATA}">
+		<MethodInvoker generator="{ScriptingModel}" method="checkBlock" arguments="{event.data}" />
+	</EventHandlers>	
+
+</EventMap>

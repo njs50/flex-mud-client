@@ -1,0 +1,5 @@
+<cross-domain-policy> 
+   <site-control permitted-cross-domain-policies="master-only"/>
+   <allow-access-from domain="p182" to-ports="4000" />
+</cross-domain-policy>
+

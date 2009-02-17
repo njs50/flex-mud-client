@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EventMap
+   xmlns:mx="http://www.adobe.com/2006/mxml"
+   xmlns="http://mate.asfusion.com/">
+
+	<mx:Script>
+		<![CDATA[			
+			import com.simian.telnet.*;
+			import mx.events.*;						
+			import com.simian.profile.*;
+			import com.simian.window.*;	
+			import com.simian.scripting.*;		
+			import com.simian.ansiTextArea.*;
+			import com.simian.scripting.*;
+			
+		]]>
+	</mx:Script>
+
+
+	
+
+	<Debugger level="{Debugger.ALL}"  /> 
+	
+
+	<!-- FlexEvent.PREINITIALIZE __________________________________________________________________ -->	
+	<EventHandlers type="{FlexEvent.PREINITIALIZE}">
+		<ObjectBuilder generator="{UserModel}"  />
+		<ObjectBuilder generator="{MainModel}"  />	
+		<ObjectBuilder generator="{ScriptingModel}"  />					
+	</EventHandlers>	
+	
+	
+	<!-- FlexEvent.APPLICATION_COMPLETE ___________________________________________________________ -->					
+	<EventHandlers type="{FlexEvent.APPLICATION_COMPLETE}" >
+		<EventAnnouncer type="{WindowEvent.OPEN_TELNET_WINDOW}" generator="{WindowEvent}" />		
+	</EventHandlers>
+	
+
+	<!-- Injectors -->
+	<Injectors target="{TelnetWindow}">
+		<PropertyInjector targetKey="title" source="{MainModel}" sourceKey="_title" />		
+		<PropertyInjector source="{UserModel}" sourceKey="telnetSettings" targetKey="telnetSettings" />		
+	</Injectors>
+
+	<Injectors target="{TelnetSettingsWindow}">			
+		<PropertyInjector source="{UserModel}" sourceKey="telnetSettings" targetKey="oSettings" />		
+	</Injectors>
+
+	<Injectors target="{AliasEditor}">
+		<PropertyInjector targetKey="editor_aAlias" source="{UserModel}" sourceKey="aAlias" />
+	</Injectors>
+	
+	<Injectors target="{TriggerEditor}">
+		<PropertyInjector targetKey="editor_aTrigger" source="{UserModel}" sourceKey="aTrigger" />
+	</Injectors>
+
+	
+
+	<!-- Events -->
+	<EventHandlers type="{WindowEvent.OPEN_TELNET_WINDOW}">
+		<!-- fire off events to add telnet window to canvas -->		
+		<MethodInvoker generator="{MainModel}" method="getTelnetWindow" />
+		<EventAnnouncer generator="{WindowEvent}" type="{WindowEvent.NEW_WINDOW}">
+			<Properties window="{lastReturn}" />
+		</EventAnnouncer>				
+	</EventHandlers> 
+ 
+ 
+ 	<EventHandlers type="{WindowEvent.OPEN_ALIAS_WINDOW}">
+		<!-- fire off events to add alias window to canvas -->
+		<MethodInvoker generator="{MainModel}" method="getAliasWindow" />
+		<EventAnnouncer generator="{WindowEvent}" type="{WindowEvent.NEW_WINDOW}">
+			<Properties window="{lastReturn}" />
+		</EventAnnouncer> 		
+ 	</EventHandlers>
+ 
+ 	<EventHandlers type="{WindowEvent.OPEN_TRIGGER_WINDOW}">
+		<!-- fire off events to add trigger window to canvas -->
+		<MethodInvoker generator="{MainModel}" method="getTriggerWindow" />
+		<EventAnnouncer generator="{WindowEvent}" type="{WindowEvent.NEW_WINDOW}">
+			<Properties window="{lastReturn}" />
+		</EventAnnouncer> 		
+ 	</EventHandlers>
+
+ 	<EventHandlers type="{WindowEvent.OPEN_TELNET_SETTINGS_WINDOW}">
+		<!-- fire off events to add trigger window to canvas -->
+		<MethodInvoker generator="{MainModel}" method="getTelnetSettingsWindow" />
+		<EventAnnouncer generator="{WindowEvent}" type="{WindowEvent.NEW_WINDOW}">
+			<Properties window="{lastReturn}" />
+		</EventAnnouncer> 		
+ 	</EventHandlers> 
+ 
+ 
+ 	<EventHandlers type="{WindowEvent.STORE_WINDOW_SETTINGS}">
+ 		<MethodInvoker generator="{UserModel}" method="storeWindowSettings" arguments="{event.window}" />
+ 	</EventHandlers>
+ 
+ 	<EventHandlers type="{WindowEvent.LOAD_WINDOW_SETTINGS}">
+ 		<MethodInvoker generator="{UserModel}" method="restoreWindowSettings" arguments="{event.window}" />
+ 	</EventHandlers>
+
+ 	<EventHandlers type="{ProfileEvent.SAVE_PROFILE}">
+ 		<MethodInvoker generator="{UserModel}" method="toByteArray" />
+ 		<MethodInvoker generator="{MainModel}" method="saveProfile" arguments="{lastReturn}" />
+ 	</EventHandlers>
+ 
+ 	<EventHandlers type="{ProfileEvent.LOAD_PROFILE}"> 		
+ 		<MethodInvoker generator="{MainModel}" method="loadProfile" />
+ 	</EventHandlers>
+
+ 	<EventHandlers type="{ProfileEvent.LOAD_PROFILE_DATA}"> 		
+ 		<MethodInvoker generator="{UserModel}" method="fromByteArray" arguments="{event.data}" />
+ 	</EventHandlers>
+
+
+	<EventHandlers type="{TelnetEvent.DISPATCH_TRIGGER_DATA}" >
+		<MethodInvoker generator="{MainModel}" method="sendTriggerCommand" arguments="{event.data}" />
+	</EventHandlers>
+
+	<EventHandlers type="{TelnetEvent.DISPATCH_DATA}" >
+		<MethodInvoker generator="{MainModel}" method="sendCommand" arguments="{event.data}" />
+	</EventHandlers>
+	
+	
+	<EventHandlers type="{TelnetEvent.CHANGE_TITLE}" >
+		<MethodInvoker generator="{MainModel}" method="changeTitle" arguments="{event.data}" />
+	</EventHandlers>	
+			
+	<EventHandlers type="{TelnetConnectEvent.CONNECT}">
+		<MethodInvoker generator="{MainModel}" method="connect" arguments="{[event.serverURL, event.portNumber]}" />
+	</EventHandlers>	
+	
+	<EventHandlers type="{TelnetConnectEvent.DISCONNECT}">
+		<MethodInvoker generator="{MainModel}" method="disconnect" />
+	</EventHandlers>		
+
+</EventMap>

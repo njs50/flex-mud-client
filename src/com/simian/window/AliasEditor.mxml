@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<flexlib:MDIWindow			
+	width="600" height="400"
+	title="Alias Configuration"
+	showCloseButton="true"
+	xmlns:flexlib="http://code.google.com/p/flexlib/"	
+	xmlns:mate="http://mate.asfusion.com/"
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	name="aliasEditor" 				
+	paddingLeft="5"
+	paddingRight="5"
+	paddingBottom="5"
+	paddingTop="5" 	
+	focusEnd="saveAlias()"
+>
+
+
+  <mx:Script>
+  <![CDATA[
+  	import com.simian.profile.Alias;
+  	import mx.collections.ArrayCollection;
+
+		[Bindable]
+		public var editor_aAlias : ArrayCollection = new ArrayCollection(); 
+		
+		public var editor_alias : Alias;
+		
+		private function addAlias() : void {
+			
+			// save anythign being edited
+			if (editor_alias) saveAlias();
+			
+			var newAlias : Alias = new Alias();
+			editor_aAlias.addItem(newAlias);
+			aliasList.selectedIndex = editor_aAlias.length - 1;	
+			
+			selectAlias();		
+		} 
+  		
+  		private function removeAlias() : void {
+  			if (aliasList.selectedIndex >= 0){
+  				editor_aAlias.removeItemAt(aliasList.selectedIndex);  				
+  			} 
+  		}
+  		
+  		public function saveAlias() : void {  	
+  			
+  			if (alias_name.text.length > 0) {
+	  			if (!editor_alias) {
+	  				editor_alias = new Alias();
+					editor_aAlias.addItem(editor_alias);
+					aliasList.selectedIndex = editor_aAlias.length - 1;
+	  			}  
+	  			
+	  			editor_alias.trigger = alias_name.text;
+	  			editor_alias.command = alias_command.text; 
+	
+	  			aliasList.invalidateList();
+	  		  			 			
+  		 	}		 			  			
+  		}  		
+  		
+  		
+  		private function selectAlias() : void {
+
+			if (editor_alias) saveAlias();
+
+			if (aliasList.selectedItem) {
+	  			
+	  			editor_alias = aliasList.selectedItem as Alias;	  			
+	  			alias_name.text = editor_alias.trigger;
+	  			alias_command.text = editor_alias.command;	  					
+	  			alias_name.setFocus();		
+  			}  			
+  		}
+
+  		private function getLabel( alias : Alias) : String {
+  			if (alias.trigger.length > 0) return alias.trigger;
+  			else return '[unnamed alias]';
+  		}
+
+
+  		
+  ]]>  
+  </mx:Script>
+  
+	<mx:HBox width="100%" height="100%">
+	  	
+		<mx:List  id="aliasList" dataProvider="{editor_aAlias}" height="100%" width="150" change="selectAlias()" labelFunction="getLabel" />
+		
+		<mx:VBox width="100%" height="100%">
+			
+			<mx:Label text="If you type: "/>
+			<mx:TextInput id="alias_name" width="100%"/>
+			
+	        <mx:Label text="I'll type: (p.s use %1 .. %x for parameters 1 to x)  "/>
+	        <mx:TextArea id="alias_command" width="100%" height="100%"/>				
+		
+		</mx:VBox>
+		
+	</mx:HBox>
+  
+	
+
+	<mx:HBox>
+		<mx:Button  label="New" click="addAlias()"/>
+		<mx:Button  label="Save" click="saveAlias()"/>
+		
+		<mx:Spacer width="100%" />
+		
+		<mx:Button  label="Delete" click="removeAlias()" />
+	</mx:HBox>
+	
+
+				
+</flexlib:MDIWindow>

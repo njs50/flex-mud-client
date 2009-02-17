@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<flexlib:MDIWindow			
+	width="700" height="300"
+	title="Telnet Settings"
+	showCloseButton="true"
+	xmlns:flexlib="http://code.google.com/p/flexlib/"	
+	xmlns:mate="http://mate.asfusion.com/"
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	name="telnetSettings"				
+>
+
+
+  <mx:Script>
+  <![CDATA[
+  	import com.simian.telnet.TelnetEvent;
+  	import mx.collections.ArrayCollection;
+  	import com.simian.telnet.TelnetSettings;
+  	
+  	[Bindable]	  	
+  	public var oSettings : TelnetSettings;	
+  		 		  		
+
+
+	private function resetTerminal() : void {
+						
+		// send command event
+		var telnetEvent : TelnetEvent = new TelnetEvent(TelnetEvent.RESET_TERMINAL);		
+		dispatchEvent(telnetEvent);				
+		
+	}
+
+  		
+  ]]>  
+  </mx:Script>
+  
+  
+  
+	<mx:Label text="Standard Colours"  fontWeight="bold"/>
+	  
+	<mx:Grid >
+		<mx:GridRow width="100%" height="100%">
+			<mx:GridItem><mx:Label text="" /></mx:GridItem>
+			<mx:GridItem><mx:Label text="Black" /></mx:GridItem>
+			<mx:GridItem><mx:Label text="Red" /></mx:GridItem>
+			<mx:GridItem><mx:Label text="Green" /></mx:GridItem>
+			<mx:GridItem><mx:Label text="Yellow" /></mx:GridItem>
+			<mx:GridItem><mx:Label text="Blue" /></mx:GridItem>
+			<mx:GridItem><mx:Label text="Magenta" /></mx:GridItem>
+			<mx:GridItem><mx:Label text="Cyan" /></mx:GridItem>      
+			<mx:GridItem><mx:Label text="White" /></mx:GridItem>
+		</mx:GridRow>
+		
+		<mx:GridRow width="100%" height="100%">
+			<mx:GridItem><mx:Label text="Normal Colours" /></mx:GridItem>
+			<mx:GridItem horizontalAlign="center"><mx:ColorPicker change="oSettings.acColoursLight.setItemAt(event.color,0)" selectedColor="{oSettings.acColoursLight.getItemAt(0) as uint}" /></mx:GridItem>
+			<mx:GridItem horizontalAlign="center"><mx:ColorPicker change="oSettings.acColoursLight.setItemAt(event.color,1)" selectedColor="{oSettings.acColoursLight.getItemAt(1) as uint}" /></mx:GridItem>
+			<mx:GridItem horizontalAlign="center"><mx:ColorPicker change="oSettings.acColoursLight.setItemAt(event.color,2)" selectedColor="{oSettings.acColoursLight.getItemAt(2) as uint}" /></mx:GridItem>
+			<mx:GridItem horizontalAlign="center"><mx:ColorPicker change="oSettings.acColoursLight.setItemAt(event.color,3)" selectedColor="{oSettings.acColoursLight.getItemAt(3) as uint}" /></mx:GridItem>
+			<mx:GridItem horizontalAlign="center"><mx:ColorPicker change="oSettings.acColoursLight.setItemAt(event.color,4)" selectedColor="{oSettings.acColoursLight.getItemAt(4) as uint}" /></mx:GridItem>
+			<mx:GridItem horizontalAlign="center"><mx:ColorPicker change="oSettings.acColoursLight.setItemAt(event.color,5)" selectedColor="{oSettings.acColoursLight.getItemAt(5) as uint}" /></mx:GridItem>
+			<mx:GridItem horizontalAlign="center"><mx:ColorPicker change="oSettings.acColoursLight.setItemAt(event.color,6)" selectedColor="{oSettings.acColoursLight.getItemAt(6) as uint}" /></mx:GridItem>
+			<mx:GridItem horizontalAlign="center"><mx:ColorPicker change="oSettings.acColoursLight.setItemAt(event.color,7)"  selectedColor="{oSettings.acColoursLight.getItemAt(7) as uint}" /></mx:GridItem>
+		</mx:GridRow>
+	
+		<mx:GridRow width="100%" height="100%">
+			<mx:GridItem><mx:Label text="Bold Colours" /></mx:GridItem>
+			<mx:GridItem horizontalAlign="center"><mx:ColorPicker selectedColor="{oSettings.acColoursDark.getItemAt(0) as uint}" /></mx:GridItem>
+			<mx:GridItem horizontalAlign="center"><mx:ColorPicker selectedColor="{oSettings.acColoursDark.getItemAt(1) as uint}" /></mx:GridItem>
+			<mx:GridItem horizontalAlign="center"><mx:ColorPicker selectedColor="{oSettings.acColoursDark.getItemAt(2) as uint}" /></mx:GridItem>
+			<mx:GridItem horizontalAlign="center"><mx:ColorPicker selectedColor="{oSettings.acColoursDark.getItemAt(3) as uint}" /></mx:GridItem>
+			<mx:GridItem horizontalAlign="center"><mx:ColorPicker selectedColor="{oSettings.acColoursDark.getItemAt(4) as uint}" /></mx:GridItem>
+			<mx:GridItem horizontalAlign="center"><mx:ColorPicker selectedColor="{oSettings.acColoursDark.getItemAt(5) as uint}" /></mx:GridItem>
+			<mx:GridItem horizontalAlign="center"><mx:ColorPicker selectedColor="{oSettings.acColoursDark.getItemAt(6) as uint}" /></mx:GridItem>
+			<mx:GridItem horizontalAlign="center"><mx:ColorPicker selectedColor="{oSettings.acColoursDark.getItemAt(7) as uint}" /></mx:GridItem>
+		</mx:GridRow>	
+		
+		<mx:GridRow width="100%" height="100%">
+			<mx:GridItem>
+				<mx:Label text="Background Colour"/>	
+			</mx:GridItem>
+			<mx:GridItem horizontalAlign="center">
+				<mx:ColorPicker change="oSettings.defaultBGcolour = event.color" selectedColor="{oSettings.defaultBGcolour}" />	
+			</mx:GridItem>
+			<mx:GridItem colSpan="7"/>
+		</mx:GridRow>
+				
+		<mx:GridRow width="100%" height="100%">
+			<mx:GridItem>
+				<mx:Label text="Foreground Colour"/>	
+			</mx:GridItem>
+			<mx:GridItem horizontalAlign="center">
+				<mx:ColorPicker change="oSettings.defaultFGcolour = event.color" selectedColor="{oSettings.defaultFGcolour}" />	
+			</mx:GridItem>
+			<mx:GridItem colSpan="7"/>
+		</mx:GridRow>
+		
+	</mx:Grid>
+		
+	<mx:HRule width="100%"/>
+	
+	<mx:Button label="Reset Terminal" click="resetTerminal()" />
+
+				
+</flexlib:MDIWindow>
