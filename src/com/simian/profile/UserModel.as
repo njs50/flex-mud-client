@@ -22,6 +22,7 @@ package com.simian.profile {
 		private var _aWindowSettings	: Array;		
 		
 		// global settings
+		[Bindable]
 		public var telnetSettings : TelnetSettings
 		
 		// local shared object data
