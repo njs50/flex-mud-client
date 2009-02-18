@@ -200,7 +200,7 @@ package com.simian.scripting {
 				else if (thisChar == ')' && quoteChar == '') { nest_level--; temp_param += thisChar; }
 				else if (thisChar == '"' || thisChar == "'")	 {
 					if (quoteChar == thisChar) quoteChar = '';						
-					else if (quoteChar != '') quoteChar = thisChar; 
+					else if (quoteChar == '') quoteChar = thisChar; 
 					temp_param += thisChar;
 				}	
 				else if (thisChar == ',' && nest_level == 0 && quoteChar == '') { aParam.push(temp_param); temp_param = ''; } 
@@ -249,7 +249,7 @@ package com.simian.scripting {
 				// ignore anything inside quotes if it's inside parenthese
 				else if (bInFucntion && (thisChar == '"' || thisChar == "'"))	 {
 					if (quoteChar == thisChar) quoteChar = '';						
-					else if (quoteChar != '') quoteChar = thisChar; 
+					else if (quoteChar == '') quoteChar = thisChar; 
 					temp += thisChar;
 				}
 					
@@ -397,7 +397,7 @@ package com.simian.scripting {
 
 		public function checkLine(line:String) : void {									
 			for each (var trig:Trigger in aTrigger) {
-				if (trig.bEnabled && trig.parse_type == 1) {
+				if (trig.bEnabled && (trig.parse_type == 1 || trig.parse_type == 0)) {
 					checkText(line, trig.trigger, trig.command);
 				}
 			}									
@@ -454,7 +454,7 @@ package com.simian.scripting {
 			// split this block into smaller blocks			
 			var aBlocks : Array = splitCodeBlock(block);				
 
-			var if_regexp : RegExp = /^\s*\/if\s*\((.*)\)\s*(.*)$/
+			var if_regexp : RegExp = /^\s*\/if\s*(.*)$/
 			var else_regexp : RegExp = /^else\s*(.*)$/
 			
 			// loop over each block item				
@@ -469,13 +469,15 @@ package com.simian.scripting {
 				
 				// if this is an if statement...]
 				if (oIf != null) {
+					
+					var aPart : Array = splitIfParts(oIf[1]);
 										
 					// evaluate the expression..
-					if (processExpression(oIf[1])) {
+					if (processExpression(aPart[0])) {
 						
 						// check to see if the command is on this same line
-						if (StringUtil.trim(oIf[2]).length > 0) {
-							retCode += executeCodeBlock(oIf[2]); // just incase there is a single line if statement execute this line as a block
+						if (StringUtil.trim(aPart[1]).length > 0) {
+							retCode += executeCodeBlock(aPart[1]); // just incase there is a single line if statement execute this line as a block
 						} else {
 						// command is the next block
 							retCode += executeCodeBlock(aBlocks[i+1]);
@@ -497,10 +499,10 @@ package com.simian.scripting {
 					// otherwise we need to look for the else case
 					else {
 						// if the true statement was in the next block skip ahead
-						if (StringUtil.trim(oIf[2]).length == 0) i++;
+						if (StringUtil.trim(aPart[1]).length == 0) i++;
 						
 						if (i+1 < aBlocks.length){ 
-							blockItem = aBlocks[i +1];
+							blockItem = aBlocks[i+1];
 							oElse = else_regexp.exec(blockItem);
 							// if the next block is the matching else statement we will need to skip it
 							if (oElse != null) {
@@ -531,7 +533,52 @@ package com.simian.scripting {
 			
 		}
 
+		// splits an if string into two parts (expression and remainder)
+		private function splitIfParts(strIf : String) : Array {
+			var aParts : Array = new Array();
 
+			var temp_block : String = '';			
+			var nest_level : int = 0;
+			var thisChar : String = '';	
+			var quoteChar : String = '';	
+				
+			// loop through each char in the block	
+			for (var i : int = 0; i < strIf.length;i++) {			
+				
+				// get the next char
+				thisChar = strIf.charAt(i);											
+				
+				// if it's the start of a new block...
+				if (thisChar == '(' && quoteChar == '') { 
+					 if (nest_level != 0) temp_block += thisChar;
+					 nest_level++; 
+				}
+				
+				else if (thisChar == ')' && quoteChar == '') { 				
+					nest_level--;									
+					if ( nest_level == 0) {
+						aParts.push(StringUtil.trim(temp_block)); 
+						temp_block = '';
+						quoteChar = 'x'					 						
+					} else temp_block += thisChar;
+				
+				}
+				
+				// quote chars
+				else if (thisChar == '"' || thisChar == "'")	 {
+					if (quoteChar == thisChar) quoteChar = '';						
+					else if (quoteChar == '') quoteChar = thisChar; 
+					temp_block += thisChar;
+				}									
+				
+				else temp_block += thisChar;				
+			}			
+			
+			aParts.push(StringUtil.trim(temp_block));					
+			
+			return aParts;
+		}
+	
 		// turns a block of code into an array of code blocks
 		private function splitCodeBlock(block:String) : Array {
 			var aBlocks : Array = new Array();
@@ -568,7 +615,7 @@ package com.simian.scripting {
 				// quote chars
 				else if (thisChar == '"' || thisChar == "'")	 {
 					if (quoteChar == thisChar) quoteChar = '';						
-					else if (quoteChar != '') quoteChar = thisChar; 
+					else if (quoteChar == '') quoteChar = thisChar; 
 					temp_block += thisChar;
 				}	
 				
