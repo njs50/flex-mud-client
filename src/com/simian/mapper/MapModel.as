@@ -1,8 +1,7 @@
 package com.simian.mapper {
+
 	import com.asfusion.mate.events.Dispatcher;
 	import com.simian.telnet.TelnetEvent;
-	
-
 	
 	public class MapModel {
 	
@@ -61,7 +60,7 @@ package com.simian.mapper {
 				room = null;
 			}			
 			
-			return new Room();
+			return room;
 			
 		}
 	
@@ -72,8 +71,7 @@ package com.simian.mapper {
 			var z : String = i_z.toString();
 			
 			var yPointer : Object;
-			var zPointer : Object;
-			
+			var zPointer : Object;			
 			
 			// find it in the x array...
 			if (_rooms.hasOwnProperty(x)) yPointer = _rooms[x];
@@ -95,7 +93,7 @@ package com.simian.mapper {
 		}
 
 
-		
+		// scans a line of text for a move
 		public function checkLine(text:String) : void {
 			
 			var oExitCheck : Object = exitingRegExp.exec(text);
@@ -155,7 +153,7 @@ package com.simian.mapper {
 			
 		}		
 		
-		
+		// scans a block of text for room info
 		public function checkBlock(text:String) : void {
 						
 			var oRoomCheck : Object = roomRegExp.exec(text);
@@ -163,23 +161,33 @@ package com.simian.mapper {
 			// if this block contains a room...
 			if (oRoomCheck != null) {
 			
-				var newRoom : Room = new Room(oRoomCheck[1],oRoomCheck[3],oRoomCheck[4],oRoomCheck[5],current_x,current_y,current_z);				
-			
+				var expectedRoom : Room = getRoom(current_x,current_y,current_z);
+				var newRoom : Room = new Room(oRoomCheck[1],oRoomCheck[3],oRoomCheck[4],oRoomCheck[5],current_x,current_y,current_z);
+				
+				// if this is a new room add it to the matrix
+				// if there was a room here already make sure it's this room then switch to it...				
+				if (expectedRoom == null ){ 				
+					setRoom(current_x,current_y,current_z,newRoom);
+				} else{
+					if ( ! newRoom.match_room(expectedRoom) ) errorMessage('moved to an existing room but it wasn\'t what we expected' );
+					else newRoom = expectedRoom;									
+				}			
+				
 				// if this is the first room in the map then make it so!
-				if (currentRoom == null) { currentRoom = newRoom; lastRoom = currentRoom };	
+				if (currentRoom == null) { currentRoom = newRoom; lastRoom = currentRoom; }	
 				
 				// if the mapper is in an error state do nothing (but taunt the user for fun) 
-				if ( move_direction == 'Error' ) {
+				else if ( move_direction == 'Error' ) {
 					errorMessage('Mapping currently suspended due to error');
 				
 				// if we have a pending move action then lets add this room to the map.
 				} else if ( move_direction != '') {
-					
-					// it's a move indeed!
-					lastRoom = currentRoom;					
 										
-					setRoom(current_x,current_y,current_z,newRoom);
+					lastRoom = currentRoom;
+					currentRoom = newRoom;
 					
+					lastRoom.addExit(move_direction,currentRoom);
+					currentRoom.addExit(reverseDirection(move_direction),lastRoom);					
 					
 					// now that we have processed the move reset move_direction;
 					move_direction = '';
@@ -187,15 +195,9 @@ package com.simian.mapper {
 				// no move detected. maybe they are just lookin around.
 				} else {
 					// check the detected room vs the current room
-					if ( (newRoom.name != currentRoom.name) ||
-						 (newRoom.line1 != currentRoom.line1) ||
-						 (newRoom.line2 != currentRoom.line2) ||						 
-						 (newRoom.line3 != currentRoom.line3) ) {
-						 	
-						 	// ruh roh, they've changed rooms without moving!
-						 	errorMessage('room change detected but no move direction was noticed!' );
-						 	
-						 }
+					// to see if they've changed rooms without moving!
+					if ( ! newRoom.match_room(currentRoom) ) errorMessage('room change detected but no move direction was noticed!' );
+						 
 				} 
 								
 				if (verbose) errorMessage('room detected : ' + newRoom.name );
@@ -206,6 +208,19 @@ package com.simian.mapper {
 		}
 		
 		
+
+		
+		
+
+		
+		
+		
+		
+		
+		/********************************
+		 *        UTILITY FUNCTIONS     *
+		 * ******************************/
+		
 		
 		// displays something for the user
 		public function errorMessage(value:String) : void {								
@@ -215,6 +230,51 @@ package com.simian.mapper {
 			dispatcher.dispatchEvent(telnetEvent);
 		}	
 
-	}
-	
+
+		private function reverseDirection(direction:String) : String {
+		
+			switch (direction) {
+			
+				case 'north':
+					return 'south';
+				break;
+
+				case 'south':
+					return 'north';
+				break;
+
+				case 'east':
+					return 'west';
+				break;
+
+				case 'west':
+					return 'east';
+				break;
+
+				case 'up':
+					return 'down';
+				break;
+
+				case 'down':
+					return 'up';
+				break;
+			
+				default:  
+					errorMessage('unknown directions can not be reversed!');
+				break;	
+				
+			}			
+						
+			return 'unknown';
+			
+		}		
+
+
+
+
+
+
+
+
+	}	
 }

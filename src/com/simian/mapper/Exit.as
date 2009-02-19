@@ -8,7 +8,7 @@ package com.simian.mapper
 		public var room : Room;
 		public var command : String;
 		
-		public function Exit(_direction:String = '',_room:Room = null,command:String = '')
+		public function Exit(_direction:String = '',_room:Room = null,_command:String = '')
 		{
 			direction = _direction;
 			room = _room;

@@ -28,5 +28,37 @@ package com.simian.mapper
 			else aExits = _aExits;
 		}
 
+
+		public function match_room(room1:Room) : Boolean {
+			if ( (room1.name != this.name) ||
+				 (room1.line1 != this.line1) ||
+				 (room1.line2 != this.line2) ||						 
+				 (room1.line3 != this.line3) ) return false;
+				 
+			return true;	  
+								
+		}
+
+
+		// adds an exit from one room to another room
+		public function addExit(direction : String,to_room : Room) : void {
+			
+			var bExists : Boolean = false;
+						
+			// could check to make sure the link is to the same room
+			// can't be arsed doing that just yet...			
+			for each (var exit : Exit in this.aExits ) {
+				if (exit.direction == direction) {													
+					bExists = true;
+				}
+			}
+			
+			if (!bExists) {
+				var newExit : Exit = new Exit(direction,to_room,direction);
+				this.aExits.push(newExit); 
+			}
+			
+		}
+
 	}
 }
