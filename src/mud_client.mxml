@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:Application 	
 	xmlns:mx="http://www.adobe.com/2006/mxml"
-	xmlns:main="com.simian.main.*"	
-	xmlns:scripting="com.simian.scripting.*"
+	xmlns:main="com.simian.main.*"		
 	paddingBottom="0"
 	paddingTop="0"
 	paddingLeft="0"
@@ -10,7 +9,11 @@
 >
 
 	<main:MainEventMap />		
-	<scripting:ScriptingEventMap />
+	
+	<!-- Module Event Maps -->
+	<scripting:ScriptingEventMap xmlns:scripting="com.simian.scripting.*" />
+	<mapper:MapperEventMap xmlns:mapper="com.simian.mapper.*" />
+	
 			
 	<main:MainView />
 

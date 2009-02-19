@@ -693,12 +693,13 @@ package com.simian.scripting {
 		}
 
 		// divide two numbers.
-		public function divide(aArguments:Array) : String {			
-			var param1:String = aArguments[0];
-			var param2: String = aArguments[1];
-			var i : Number = Number(param1) / Number(param2);
+		public function divide(aArguments:Array) : String {						
+			var i : Number = Number(aArguments[0]) / Number(aArguments[1]);
 			return i.toString();
 		}
+
+
+
 
 
 		// evaluates an expression
