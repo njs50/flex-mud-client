@@ -1,5 +1,8 @@
 package com.simian.mapper
 {
+	import flash.display.Shape;
+	import flash.display.Sprite;
+	
 	
 	[RemoteClass(alias="com.simian.mapper.Room")]		
 	public class Room
@@ -10,10 +13,12 @@ package com.simian.mapper
 		public var line2 : String;
 		public var line3 : String;
 		public var aExits : Array;
-		
+				
 		public var x : int;
 		public var y : int;						
 		public var z : int;
+		
+		private var _room_sprite : Sprite;
 		
 		public function Room(_name:String = '',_line1:String = '',_line2:String = '',_line3:String = '', _x : int = 0, _y : int = 0, _z:int = 0, _aExits:Array = null)
 		{
@@ -27,6 +32,28 @@ package com.simian.mapper
 			if (_aExits == null) aExits = new Array();
 			else aExits = _aExits;
 		}
+
+
+		
+
+
+
+		public function drawSprite() : Sprite {
+
+			var roomSprite : Sprite = new Sprite();
+						
+			roomSprite.graphics.lineStyle(1,0xff0000);
+			roomSprite.graphics.beginFill(0x00ff00);
+			
+			roomSprite.graphics.drawRect(11,11,18,18);
+			
+			roomSprite.x = this.x * 29;
+			roomSprite.y = this.y * 29 * -1;			
+
+			return roomSprite;
+			
+		}
+
 
 
 		public function match_room(room1:Room) : Boolean {

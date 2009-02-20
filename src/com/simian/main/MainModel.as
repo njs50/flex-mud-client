@@ -17,7 +17,8 @@ package com.simian.main {
 		private var _telnetWindow : TelnetWindow;
 		private var _aliasWindow : AliasEditor;
 		private var _triggerWindow : TriggerEditor;
-		private var _settingsWindow : TelnetSettingsWindow;						
+		private var _settingsWindow : TelnetSettingsWindow;				
+		private var _mapperWindow : MapperWindow;				
 		
 		private var fileReference : FileReference; 
 		
@@ -36,6 +37,7 @@ package com.simian.main {
 			_aliasWindow 	= new AliasEditor();
 			_triggerWindow 	= new TriggerEditor();
 			_settingsWindow = new TelnetSettingsWindow();
+			_mapperWindow	= new MapperWindow();
 			
 			// loading and saving profiles to local files
 			fileReference 	= new FileReference();
@@ -44,6 +46,10 @@ package com.simian.main {
 
 		public function getAliasWindow() : AliasEditor {
 			return _aliasWindow;
+		}
+
+		public function getMapperWindow() : MapperWindow {
+			return _mapperWindow;
 		}
 
 		public function getTriggerWindow() : TriggerEditor {

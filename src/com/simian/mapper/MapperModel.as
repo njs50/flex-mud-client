@@ -3,7 +3,9 @@ package com.simian.mapper {
 	import com.asfusion.mate.events.Dispatcher;
 	import com.simian.telnet.TelnetEvent;
 	
-	public class MapModel {
+	import flash.display.Sprite;
+	
+	public class MapperModel {
 	
 		public var verbose : Boolean = true;
 	
@@ -14,83 +16,28 @@ package com.simian.mapper {
 		
 		private var currentRoom : Room;
 		
-		private var current_x : int = 0;
-		private var current_y : int = 0;
-		private var current_z : int = 0;
+		public var current_x : int = 0;
+		public var current_y : int = 0;
+		public var current_z : int = 0;
 				
 		private var move_direction : String = '';		
 		
 		private var lastRoom : Room;
 		
-		private var _rooms : Object = new Object();
+		[Bindable]
+		public var oMap : Map;
+		
+		[Bindable]
+		public var _map_sprite : Sprite = new Sprite();
 		
 		
-		public function MapModel() : void {
+		public function MapperModel() : void {
+			
+			oMap = new Map('Test Map');
 			
 		}
 	
 	
-		public function getRoom(i_x:int,i_y:int,i_z:int) : Room {
-			
-			var x : String = i_x.toString();
-			var y : String = i_y.toString();
-			var z : String = i_z.toString();
-			
-			var yPointer : Object;
-			var zPointer : Object;
-			var room : Room;
-			
-			// find it in the x array...
-			if (_rooms.hasOwnProperty(x)) yPointer = _rooms[x];
-			else {
-				yPointer = new Object();
-				_rooms[x] = yPointer;
-			}
-			
-			// find it in the y array...
-			if (yPointer.hasOwnProperty(y)) zPointer = yPointer[y];
-			else {
-				zPointer = new Object();
-				yPointer[y] = zPointer;
-			}
-
-			// find it in the z array...
-			if (zPointer.hasOwnProperty(z)) room = zPointer[z];
-			else {
-				room = null;
-			}			
-			
-			return room;
-			
-		}
-	
-		public function setRoom(i_x:int,i_y:int,i_z:int, room: Room) : void {
-			
-			var x : String = i_x.toString();
-			var y : String = i_y.toString();
-			var z : String = i_z.toString();
-			
-			var yPointer : Object;
-			var zPointer : Object;			
-			
-			// find it in the x array...
-			if (_rooms.hasOwnProperty(x)) yPointer = _rooms[x];
-			else {
-				yPointer = new Object();
-				_rooms[x] = yPointer;
-			}
-			
-			// find it in the y array...
-			if (yPointer.hasOwnProperty(y)) zPointer = yPointer[y];
-			else {
-				zPointer = new Object();
-				yPointer[y] = zPointer;
-			}
-
-			// place it in the z array...
-			zPointer[z] = room;
-			
-		}
 
 
 		// scans a line of text for a move
@@ -161,13 +108,21 @@ package com.simian.mapper {
 			// if this block contains a room...
 			if (oRoomCheck != null) {
 			
-				var expectedRoom : Room = getRoom(current_x,current_y,current_z);
+				var expectedRoom : Room = oMap.getRoom(current_x,current_y,current_z);
 				var newRoom : Room = new Room(oRoomCheck[1],oRoomCheck[3],oRoomCheck[4],oRoomCheck[5],current_x,current_y,current_z);
 				
 				// if this is a new room add it to the matrix
 				// if there was a room here already make sure it's this room then switch to it...				
 				if (expectedRoom == null ){ 				
-					setRoom(current_x,current_y,current_z,newRoom);
+					
+					// add to the room matrix
+					oMap.setRoom(current_x,current_y,current_z,newRoom);
+					// broadcast the new room to the map
+		        	var mEvent : MapperEvent;       	
+					mEvent = new MapperEvent(MapperEvent.NEW_ROOM);        	
+					mEvent.room = newRoom;		
+					dispatcher.dispatchEvent(mEvent);					
+					
 				} else{
 					if ( ! newRoom.match_room(expectedRoom) ) errorMessage('moved to an existing room but it wasn\'t what we expected' );
 					else newRoom = expectedRoom;									

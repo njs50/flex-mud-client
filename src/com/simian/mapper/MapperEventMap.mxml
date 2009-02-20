@@ -4,7 +4,8 @@
    xmlns="http://mate.asfusion.com/">
 
 	<mx:Script>
-		<![CDATA[								
+		<![CDATA[
+			import com.simian.window.MapperWindow;								
 			import com.simian.telnet.TelnetEvent;			
 		]]>
 	</mx:Script>
@@ -12,12 +13,20 @@
 
 	<Debugger level="{Debugger.ALL}"  /> 	
 	
+	<Injectors target="{MapperWindow}">
+		<PropertyInjector targetKey="oMap" source="{MapperModel}" sourceKey="oMap" />
+		<PropertyInjector targetKey="current_x" source="{MapperModel}" sourceKey="current_x" />
+		<PropertyInjector targetKey="current_y" source="{MapperModel}" sourceKey="current_y" />
+		<PropertyInjector targetKey="current_z" source="{MapperModel}" sourceKey="current_z" />		
+	</Injectors>	
+	
+
 	<EventHandlers type="{TelnetEvent.PARSE_LINE_DATA}">		
-		<MethodInvoker generator="{MapModel}" method="checkLine" arguments="{event.data}" />
+		<MethodInvoker generator="{MapperModel}" method="checkLine" arguments="{event.data}" />
 	</EventHandlers>	
 
 	<EventHandlers type="{TelnetEvent.PARSE_BLOCK_DATA}">
-		<MethodInvoker generator="{MapModel}" method="checkBlock" arguments="{event.data}" />
+		<MethodInvoker generator="{MapperModel}" method="checkBlock" arguments="{event.data}" />
 	</EventHandlers>	
 
 </EventMap>

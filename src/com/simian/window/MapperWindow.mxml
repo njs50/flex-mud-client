@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<flexlib:MDIWindow		 
+	backgroundColor="0xc0c0c0"
+	width="600" height="600"
+	showCloseButton="true"
+	xmlns:flexlib="http://code.google.com/p/flexlib/"	
+	xmlns:mate="http://mate.asfusion.com/"
+	xmlns:mx="http://www.adobe.com/2006/mxml"	 	
+	name="mapperWindow"		
+ 	creationComplete="init()"
+ 	title="All your maps are belong to us"
+>
+
+
+  <mx:Script>
+  <![CDATA[
+  	import com.simian.mapper.MapperEvent;
+  	import com.simian.mapper.Room;
+  	import com.simian.mapper.Map;
+
+  	
+	public var oMap : Map;
+  
+  	public var current_x : int;
+  	public var current_y : int;
+  	public var current_z : int;
+  
+  
+ 	private function init() : void {
+ 		
+
+ 		
+ 	} 
+ 	
+ 	private function thing(oRoom:Room): void {
+ 		
+ 		 		 	
+ 		var ns : Sprite = oRoom.drawSprite();
+ 		
+ 		ns.x += 150;
+ 		ns.y += 150;
+ 		
+ 		displayArea.rawChildren.addChild(ns); 	
+ 		
+ 		trace('-- thing button clicked');
+ 		
+ 	}
+  
+  ]]>  
+  </mx:Script>
+
+	<mate:Listener type="{MapperEvent.NEW_ROOM}" receive="thing(event.room)" />
+
+	<mx:Canvas width="100%" height="100%" id="displayArea">
+		
+	</mx:Canvas>
+				
+				
+</flexlib:MDIWindow>

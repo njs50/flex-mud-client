@@ -73,7 +73,17 @@
 			<Properties window="{lastReturn}" />
 		</EventAnnouncer> 		
  	</EventHandlers>
- 
+
+ 	<EventHandlers type="{WindowEvent.OPEN_MAPPER_WINDOW}">
+		<!-- fire off events to add mapper window to canvas -->
+		<MethodInvoker generator="{MainModel}" method="getMapperWindow" />
+		<EventAnnouncer generator="{WindowEvent}" type="{WindowEvent.NEW_WINDOW}">
+			<Properties window="{lastReturn}" />
+		</EventAnnouncer> 		
+ 	</EventHandlers>
+
+
+
  	<EventHandlers type="{WindowEvent.OPEN_TRIGGER_WINDOW}">
 		<!-- fire off events to add trigger window to canvas -->
 		<MethodInvoker generator="{MainModel}" method="getTriggerWindow" />
@@ -81,6 +91,7 @@
 			<Properties window="{lastReturn}" />
 		</EventAnnouncer> 		
  	</EventHandlers>
+
 
  	<EventHandlers type="{WindowEvent.OPEN_TELNET_SETTINGS_WINDOW}">
 		<!-- fire off events to add trigger window to canvas -->

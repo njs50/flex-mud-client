@@ -19,6 +19,7 @@ package com.simian.window {
 		public static const OPEN_TRIGGER_WINDOW : String = 'openTriggerWindow'; 
 		public static const OPEN_TELNET_WINDOW : String = 'openTelnetWindow';
 		public static const OPEN_TELNET_SETTINGS_WINDOW : String = 'openTelnetSettingsWindow';	
+		public static const OPEN_MAPPER_WINDOW : String = 'openMapperWindow';
 		
 		// EVENT DATA		
 		

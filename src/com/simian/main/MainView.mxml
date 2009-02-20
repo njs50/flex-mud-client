@@ -25,7 +25,7 @@
 	
 			// an array for the buttons in the top nav (not sure why, just pissing around with em atm)
 			[Bindable (event="updatedMenuBar")]
-			private var topNavButtons : Array = ['Connect','Alias Config', 'Trigger Config','Save Profile','Load Profile','Config']
+			private var topNavButtons : Array = ['Connect','Alias Config', 'Trigger Config','Save Profile','Load Profile','Config','Mapper']
 			
 			
 			private function newWindow(event:WindowEvent) : void {				
@@ -97,6 +97,11 @@
 			    	
 			    	case 'Config':				
 						mdiEvent = new WindowEvent(WindowEvent.OPEN_TELNET_SETTINGS_WINDOW);							
+						dispatchEvent(mdiEvent);					 				   	    	
+			    	break;			    			
+
+			    	case 'Mapper':				
+						mdiEvent = new WindowEvent(WindowEvent.OPEN_MAPPER_WINDOW);							
 						dispatchEvent(mdiEvent);					 				   	    	
 			    	break;			    			
 			    		    	
