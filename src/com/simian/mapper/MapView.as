@@ -101,13 +101,27 @@ package com.simian.mapper
 		
 		private function resizeScrollBars() : void {
 			
+			var mapRect : Rectangle = mapSprite.getBounds(current_layer);
+			
+			// set scroll bar sizes
+			// rabies : this needs a bunch of work (or maybe the scrolling code does).
+			this.setScrollBarProperties(mapRect.width + (this.width / 2),this.width,mapRect.height + (this.height/2), this.height);									
+			
+			// potentially only 1/4 of the sprite is showing. i.e if you head all SE from exlpored land.
+			
+			// set scroll bar positions
+			
+			// this.verticalScrollPosition = 
+			// this.horizontalScrollPosition =
+			
+			// invalidate display list to force update of scroll bars
+			this.invalidateDisplayList();
 			
 			
 		}
 		
-		
+		// centers the map on the current room
 		private function centerMap() : void {
-			var mapRect : Rectangle = mapSprite.getBounds(current_layer);
 			
 			current_layer.x = (this.width / 2) - current_room.x;
 			current_layer.y = (this.height / 2) - current_room.y ;						  

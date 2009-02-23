@@ -31,7 +31,7 @@
  	} 
  	
  	private function wtf() : void {
- 		trace(current_x.toString() + ' : ' + current_y.toString());
+ 	//	trace(current_x.toString() + ' : ' + current_y.toString());
  		
  		var roomRect : Rectangle = current_room.getBounds(current_room);
  		
