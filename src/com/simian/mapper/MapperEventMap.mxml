@@ -14,12 +14,9 @@
 	<Debugger level="{Debugger.ALL}"  /> 	
 	
 	<Injectors target="{MapperWindow}">
-		<PropertyInjector targetKey="oMap" source="{MapperModel}" sourceKey="oMap" />
-		<PropertyInjector targetKey="current_x" source="{MapperModel}" sourceKey="current_x" />
-		<PropertyInjector targetKey="current_y" source="{MapperModel}" sourceKey="current_y" />
-		<PropertyInjector targetKey="current_z" source="{MapperModel}" sourceKey="current_z" />		
+		<PropertyInjector targetKey="oMap" source="{MapperModel}" sourceKey="oMap" />			
+		<PropertyInjector targetKey="current_room" source="{MapperModel}" sourceKey="current_room" />
 	</Injectors>	
-	
 
 	<EventHandlers type="{TelnetEvent.PARSE_LINE_DATA}">		
 		<MethodInvoker generator="{MapperModel}" method="checkLine" arguments="{event.data}" />

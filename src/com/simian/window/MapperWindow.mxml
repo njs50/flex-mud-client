@@ -8,52 +8,54 @@
 	xmlns:mx="http://www.adobe.com/2006/mxml"	 	
 	name="mapperWindow"		
  	creationComplete="init()"
- 	title="All your maps are belong to us"
+ 	title="{oMap.map_name}"
 >
 
 
   <mx:Script>
   <![CDATA[
-  	import com.simian.mapper.MapperEvent;
   	import com.simian.mapper.Room;
+  	import com.simian.mapper.MapperEvent;
+  	
   	import com.simian.mapper.Map;
 
-  	
+  	[Bindable]
 	public var oMap : Map;
   
-  	public var current_x : int;
-  	public var current_y : int;
-  	public var current_z : int;
-  
+  	[Bindable]
+  	public var current_room : Room;
+
   
  	private function init() : void {
  		
-
- 		
  	} 
  	
- 	private function thing(oRoom:Room): void {
+ 	private function wtf() : void {
+ 		trace(current_x.toString() + ' : ' + current_y.toString());
  		
- 		 		 	
- 		var ns : Sprite = oRoom.drawSprite();
+ 		var roomRect : Rectangle = current_room.getBounds(current_room);
  		
- 		ns.x += 150;
- 		ns.y += 150;
- 		
- 		displayArea.rawChildren.addChild(ns); 	
- 		
- 		trace('-- thing button clicked');
+ 		trace(roomRect);
  		
  	}
+ 	
   
   ]]>  
   </mx:Script>
 
-	<mate:Listener type="{MapperEvent.NEW_ROOM}" receive="thing(event.room)" />
+	<mate:Listener type="{MapperEvent.CHANGE_ROOM}" receive="mapview.changeRoom()" />
+	
+	<mate:Listener type="{MapperEvent.CHANGE_LAYER}" receive="mapview.changeLayer()" />	
 
-	<mx:Canvas width="100%" height="100%" id="displayArea">
-		
-	</mx:Canvas>
-				
+	<mapper:MapView 
+		xmlns:mapper="com.simian.mapper.*" 		
+		map="{oMap}" 
+		width="100%" 
+		height="100%" 
+		id="mapview" 
+		current_room="{current_room}"
+	/>	
+	
+	<mx:Button label="wtf" click="wtf()" />
 				
 </flexlib:MDIWindow>

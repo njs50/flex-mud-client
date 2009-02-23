@@ -6,13 +6,20 @@ package com.simian.mapper
 	{		
 		
 		public var oRooms : Object;
-		public var name : String;
+		
+		[Bindable]
+		public var map_name : String;
+		
+		[Bindable]
+		public var current_layer : MapLayer;
 		
 		public function Map(_name:String = '')
 		{
 			oRooms = new Object();
-			name = _name;				
+			map_name = _name;				
 		}
+
+
 
 		public function getRoom(i_x:int,i_y:int,i_z:int) : Room {
 			
@@ -24,11 +31,15 @@ package com.simian.mapper
 			var xPointer : Object;
 			var room : Room;
 			
-			// find it in the x array...
-			if (oRooms.hasOwnProperty(z)) yPointer = oRooms[z];
-			else {
-				yPointer = new Object();
-				oRooms[z] = yPointer;
+			// find it in the z array...
+			if (oRooms.hasOwnProperty(z)){
+				yPointer = oRooms[z].oRooms;				
+			} 
+			else {				
+				current_layer = new MapLayer();
+				oRooms[z] = current_layer					
+				current_layer.setActiveLayer();	
+				yPointer = current_layer.oRooms;
 			}
 			
 			// find it in the y array...
@@ -38,7 +49,7 @@ package com.simian.mapper
 				yPointer[y] = xPointer;
 			}
 
-			// find it in the z array...
+			// find it in the x array...
 			if (xPointer.hasOwnProperty(x)) room = xPointer[x];
 			else {
 				room = null;
@@ -57,12 +68,19 @@ package com.simian.mapper
 			var yPointer : Object;
 			var xPointer : Object;			
 			
-			// find it in the x array...
-			if (oRooms.hasOwnProperty(z)) yPointer = oRooms[z];
-			else {
-				yPointer = new Object();
-				oRooms[z] = yPointer;
-			}
+			// find it in the z array...
+			if (oRooms.hasOwnProperty(z)){
+				yPointer = oRooms[z].oRooms;
+				current_layer.addRoom(room);
+			} 
+			else {				
+				current_layer = new MapLayer();
+				oRooms[z] = current_layer
+				// rabies : we shouldn't be doing this stuff here. temp for testing. layer changes/management should be done elsewhere
+				current_layer.addRoom(room);						
+				current_layer.setActiveLayer();	
+				yPointer = current_layer.oRooms;
+			}			
 			
 			// find it in the y array...
 			if (yPointer.hasOwnProperty(y)) xPointer = yPointer[y];
@@ -71,7 +89,7 @@ package com.simian.mapper
 				yPointer[y] = xPointer;
 			}
 
-			// place it in the z array...
+			// place it in the x array...
 			xPointer[x] = room;
 			
 		}

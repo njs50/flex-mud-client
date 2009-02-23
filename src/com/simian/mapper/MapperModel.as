@@ -14,11 +14,13 @@ package com.simian.mapper {
 		private var exitingRegExp : RegExp = /You (\w+) (north|east|south|west|up|down)\.$/		
 		private var roomRegExp : RegExp = /([^\n]*)\n\[Exits:([^\]]*)\]\s*([^\n]*)\n([^\n]*)\n([^\n]*)/;
 		
-		private var currentRoom : Room;
+		[Bindable]
+		public var current_room : Room;
 		
-		public var current_x : int = 0;
-		public var current_y : int = 0;
-		public var current_z : int = 0;
+		
+		private var current_x : int = 0;
+		private var current_y : int = 0;
+		private var current_z : int = 0;
 				
 		private var move_direction : String = '';		
 		
@@ -27,13 +29,16 @@ package com.simian.mapper {
 		[Bindable]
 		public var oMap : Map;
 		
-		[Bindable]
-		public var _map_sprite : Sprite = new Sprite();
 		
 		
 		public function MapperModel() : void {
 			
 			oMap = new Map('Test Map');
+
+			// despatch a map change event
+        	var mEvent : MapperEvent;       	
+			mEvent = new MapperEvent(MapperEvent.CHANGE_MAP);        				
+			dispatcher.dispatchEvent(mEvent);
 			
 		}
 	
@@ -113,23 +118,30 @@ package com.simian.mapper {
 				
 				// if this is a new room add it to the matrix
 				// if there was a room here already make sure it's this room then switch to it...				
-				if (expectedRoom == null ){ 				
-					
+				if (expectedRoom == null ){ 									
 					// add to the room matrix
 					oMap.setRoom(current_x,current_y,current_z,newRoom);
-					// broadcast the new room to the map
-		        	var mEvent : MapperEvent;       	
-					mEvent = new MapperEvent(MapperEvent.NEW_ROOM);        	
-					mEvent.room = newRoom;		
-					dispatcher.dispatchEvent(mEvent);					
 					
 				} else{
 					if ( ! newRoom.match_room(expectedRoom) ) errorMessage('moved to an existing room but it wasn\'t what we expected' );
 					else newRoom = expectedRoom;									
 				}			
+
+		 		// deselect the last room (if there was one)
+		 		if (current_room != null) {
+		 			current_room.bSelected = false;
+		 			current_room.redraw(); 			
+		 		}
+
+		 		// select the new room
+		 		newRoom.bSelected = true;
+		 		newRoom.redraw();
+
+
 				
+								
 				// if this is the first room in the map then make it so!
-				if (currentRoom == null) { currentRoom = newRoom; lastRoom = currentRoom; }	
+				if (current_room == null) { current_room = newRoom; lastRoom = current_room; } 	
 				
 				// if the mapper is in an error state do nothing (but taunt the user for fun) 
 				else if ( move_direction == 'Error' ) {
@@ -138,11 +150,11 @@ package com.simian.mapper {
 				// if we have a pending move action then lets add this room to the map.
 				} else if ( move_direction != '') {
 										
-					lastRoom = currentRoom;
-					currentRoom = newRoom;
+					lastRoom = current_room;
+					current_room = newRoom;
 					
-					lastRoom.addExit(move_direction,currentRoom);
-					currentRoom.addExit(reverseDirection(move_direction),lastRoom);					
+					lastRoom.addExit(move_direction,current_room);
+					current_room.addExit(reverseDirection(move_direction),lastRoom);					
 					
 					// now that we have processed the move reset move_direction;
 					move_direction = '';
@@ -151,11 +163,21 @@ package com.simian.mapper {
 				} else {
 					// check the detected room vs the current room
 					// to see if they've changed rooms without moving!
-					if ( ! newRoom.match_room(currentRoom) ) errorMessage('room change detected but no move direction was noticed!' );
+					if ( ! newRoom.match_room(current_room) ) errorMessage('room change detected but no move direction was noticed!' );
 						 
 				} 
 								
-				if (verbose) errorMessage('room detected : ' + newRoom.name );
+								
+
+				// despatch a room change event
+		    	var mEvent : MapperEvent;       	
+				mEvent = new MapperEvent(MapperEvent.CHANGE_ROOM);        				
+				dispatcher.dispatchEvent(mEvent);
+			
+				trace(current_x.toString() + ' ::: ' + current_y.toString());								
+								
+								
+				if (verbose) errorMessage('room detected : ' + newRoom.room_name );
 			}
 			
 			
