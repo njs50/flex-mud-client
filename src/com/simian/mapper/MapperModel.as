@@ -18,7 +18,7 @@ package com.simian.mapper {
 		// private vars
 		private var dispatcher : Dispatcher = new Dispatcher();
 		
-		private var exitingRegExp : RegExp = /You (\w+) (north|east|south|west|up|down)\.$/;		
+		private var exitingRegExp : RegExp = /You\s(\S+\s?\S*)\s(north|east|south|west|up|down)\.$/;		
 		private var roomRegExp : RegExp = /([^\n]*)\n\[Exits:([^\]]*)\]\s*([^\n]*)\n([^\n]*)\n([^\n]*)/;
 		
 		private var current_x : int = 0;
@@ -63,6 +63,7 @@ package com.simian.mapper {
 			
 			var oExitCheck : Object = exitingRegExp.exec(text);
 			
+			
 			if (oExitCheck != null) {
 				
 				if (move_direction.length != 0){
@@ -71,8 +72,11 @@ package com.simian.mapper {
 						move_direction = 'Error';
 					}
 				} else {
-					move_direction = oExitCheck[2];	
-					move(move_direction);
+					// don't want it matching 'You stand up.'
+					if (oExitCheck[1].toLowerCase() != 'stand'){
+						move_direction = oExitCheck[2];	
+						move(move_direction);
+					}
 				}
 				
 				if (verbose) errorMessage('exited : ' + oExitCheck[2] );
