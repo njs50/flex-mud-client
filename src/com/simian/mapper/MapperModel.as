@@ -3,8 +3,6 @@ package com.simian.mapper {
 	import com.asfusion.mate.events.Dispatcher;
 	import com.simian.telnet.TelnetEvent;
 	
-	import flash.display.Sprite;
-	
 	[Bindable]
 	public class MapperModel {
 	
@@ -14,12 +12,13 @@ package com.simian.mapper {
 		public var current_room : Room;
 		public var lastRoom : Room;
 		public var current_layer : MapLayer;		
-		
+		public var bMappingEnabled : Boolean = false;
+		public var aMaps : Array;
 		
 		// private vars
 		private var dispatcher : Dispatcher = new Dispatcher();
 		
-		private var exitingRegExp : RegExp = /You (\w+) (north|east|south|west|up|down)\.$/		
+		private var exitingRegExp : RegExp = /You (\w+) (north|east|south|west|up|down)\.$/;		
 		private var roomRegExp : RegExp = /([^\n]*)\n\[Exits:([^\]]*)\]\s*([^\n]*)\n([^\n]*)\n([^\n]*)/;
 		
 		private var current_x : int = 0;
@@ -33,8 +32,14 @@ package com.simian.mapper {
 		
 		
 		public function MapperModel() : void {
+		
+			aMaps = new Array();
 			
+			// create a new map
 			oMap = new Map('Test Map');
+			
+			// add the new map to the array of maps
+			aMaps.push(oMap);
 
 			// despatch a map change event
         	var mEvent : MapperEvent;       	
@@ -43,8 +48,15 @@ package com.simian.mapper {
 			
 		}
 	
-	
+		// start mapper
+		public function mapperStart() : void {
+			bMappingEnabled = true;
+		}
 
+		// stop mapper
+		public function mapperStop() : void {
+			bMappingEnabled = false;
+		}
 
 		// scans a line of text for a move
 		public function checkLine(text:String) : void {
@@ -69,42 +81,7 @@ package com.simian.mapper {
 		} 
 		
 		
-		private function move(direction:String) : void {
-		
-			switch (direction) {
-			
-				case 'north':
-					current_y++;
-				break;
 
-				case 'south':
-					current_y--;
-				break;
-
-				case 'east':
-					current_x++;
-				break;
-
-				case 'west':
-					current_x--;
-				break;
-
-				case 'up':
-					current_z++;
-				break;
-
-				case 'down':
-					current_z--;
-				break;
-			
-				default:  
-					errorMessage('moved in unknown direction!');
-				break;	
-			}			
-			
-			if (verbose) errorMessage('new location : (' + current_x + ',' + current_y + ',' + current_z + ')' );
-			
-		}		
 		
 		// scans a block of text for room info
 		public function checkBlock(text:String) : void {
@@ -120,14 +97,16 @@ package com.simian.mapper {
 				// if this is a new room add it to the matrix
 				// if there was a room here already make sure it's this room then switch to it...				
 				if (expectedRoom == null ){ 									
-					// add to the room matrix
-					oMap.setRoom(current_x,current_y,current_z,newRoom);
+
+					// if mapping is enabled add to the room matrix
+					if (bMappingEnabled) {	
+						oMap.setRoom(current_x,current_y,current_z,newRoom);
+					}
 					
 				} else{
 					if ( ! newRoom.match_room(expectedRoom) ) errorMessage('moved to an existing room but it wasn\'t what we expected' );
 					else newRoom = expectedRoom;									
 				}			
-
 								
 				// if this is the first room in the map then make it so!
 				if (current_room == null) { current_room = newRoom; lastRoom = current_room; } 	
@@ -139,18 +118,36 @@ package com.simian.mapper {
 				// if we have a pending move action then lets add this room to the map.
 				} else if ( move_direction != '') {
 										
-					lastRoom = current_room;
-					current_room = newRoom;
+					// add exits to rooms (if mapping is enabled)			
 					
-					// add exit from this room to last room (rabies)					
-					// this is assuming all moves are bidirectional (no one way doors)
-					current_room.addExit(reverseDirection(move_direction),lastRoom);					
-					
-					// add exit from last room to this room
-					lastRoom.addExit(move_direction,current_room);					
+					if (bMappingEnabled) {		
+						// add exit from last room to this room
+						current_room.addExit(move_direction,newRoom);					
+						// this is assuming all moves are bidirectional (no one way doors)
+						newRoom.addExit(reverseDirection(move_direction),current_room);										
+					}
 					
 					// now that we have processed the move reset move_direction;
 					move_direction = '';
+
+					// update the current room pointer
+					lastRoom = current_room;
+					current_room = newRoom;
+
+			 		// deselect the last room (if there was one)
+			 		if (lastRoom != null) {
+			 			lastRoom.bSelected = false;
+			 			lastRoom.redraw(); 			
+			 		}
+	
+			 		// select the new room
+			 		current_room.bSelected = true;
+			 		current_room.redraw();
+
+					// despatch a room change event to let the viewer know we have moved
+			    	var mEvent : MapperEvent;       	
+					mEvent = new MapperEvent(MapperEvent.CHANGE_ROOM);        				
+					dispatcher.dispatchEvent(mEvent);
 				
 				// no move detected. maybe they are just lookin around.
 				} else {
@@ -160,24 +157,6 @@ package com.simian.mapper {
 						 
 				} 
 
-
-		 		// deselect the last room (if there was one)
-		 		if (lastRoom != null) {
-		 			lastRoom.bSelected = false;
-		 			lastRoom.redraw(); 			
-		 		}
-
-		 		// select the new room
-		 		current_room.bSelected = true;
-		 		current_room.redraw();
-
-								
-
-				// despatch a room change event
-		    	var mEvent : MapperEvent;       	
-				mEvent = new MapperEvent(MapperEvent.CHANGE_ROOM);        				
-				dispatcher.dispatchEvent(mEvent);
-			
 								
 				if (verbose) errorMessage('room detected : ' + newRoom.room_name );
 			}
@@ -249,7 +228,42 @@ package com.simian.mapper {
 		}		
 
 
+		private function move(direction:String) : void {
+		
+			switch (direction) {
+			
+				case 'north':
+					current_y++;
+				break;
 
+				case 'south':
+					current_y--;
+				break;
+
+				case 'east':
+					current_x++;
+				break;
+
+				case 'west':
+					current_x--;
+				break;
+
+				case 'up':
+					current_z++;
+				break;
+
+				case 'down':
+					current_z--;
+				break;
+			
+				default:  
+					errorMessage('moved in unknown direction!');
+				break;	
+			}			
+			
+			if (verbose) errorMessage('new location : (' + current_x + ',' + current_y + ',' + current_z + ')' );
+			
+		}		
 
 
 

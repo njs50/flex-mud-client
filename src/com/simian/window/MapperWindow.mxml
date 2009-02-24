@@ -9,6 +9,10 @@
 	name="mapperWindow"		
  	creationComplete="init()"
  	title="{oMap.map_name}"
+	paddingLeft="5"
+	paddingRight="5"
+	paddingBottom="5"
+	paddingTop="5" 		 	
 >
 
 
@@ -24,21 +28,46 @@
   
   	[Bindable]
   	public var current_room : Room;
-
+  	
+  	public var bMappingEnabled : Boolean = false;
+  
   
  	private function init() : void {
  		
+ 		 updateToggleLabel();
+ 		
  	} 
  	
- 	private function wtf() : void {
- 	//	trace(current_x.toString() + ' : ' + current_y.toString());
- 		
- 		var roomRect : Rectangle = current_room.getBounds(current_room);
- 		
- 		trace(roomRect);
- 		
+ 	private function wtf() : void { 		 		
+ 		trace('wtf'); 		
  	}
  	
+ 	private function updateToggleLabel() : void {
+ 		if (bMappingEnabled) toggle_mapper.label = 'stop mapping';
+ 		else toggle_mapper.label = 'start mapping';
+ 	}
+ 	
+ 	private function toggle_mapping() : void {
+
+		// despatch a mapping start/stop even
+    	var mEvent : MapperEvent;       	
+
+ 		if (bMappingEnabled){ 
+ 			bMappingEnabled = false;
+ 			mEvent = new MapperEvent(MapperEvent.MAPPER_STOP);
+ 		}
+ 		else { 
+ 			bMappingEnabled = true;
+ 			mEvent = new MapperEvent(MapperEvent.MAPPER_START);
+ 		}
+		dispatchEvent(mEvent);
+
+ 		updateToggleLabel();
+ 	}
+ 	
+ 	private function find() : void {
+ 		
+ 	}
   
   ]]>  
   </mx:Script>
@@ -46,6 +75,12 @@
 	<mate:Listener type="{MapperEvent.CHANGE_ROOM}" receive="mapview.changeRoom()" />
 	
 	<mate:Listener type="{MapperEvent.CHANGE_LAYER}" receive="mapview.changeLayer()" />	
+
+	<mx:HBox>		
+		<mx:Button id="toggle_mapper" click="toggle_mapping()" />
+		<!-- <mx:Button label="find" /> -->	
+	</mx:HBox>
+	
 
 	<mapper:MapView 
 		xmlns:mapper="com.simian.mapper.*" 		
@@ -56,6 +91,6 @@
 		current_room="{current_room}"
 	/>	
 	
-	<mx:Button label="wtf" click="wtf()" />
+	
 				
 </flexlib:MDIWindow>

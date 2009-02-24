@@ -13,10 +13,20 @@
 
 	<Debugger level="{Debugger.ALL}"  /> 	
 	
-	<Injectors target="{MapperWindow}">
+	<Injectors target="{MapperWindow}">		
 		<PropertyInjector targetKey="oMap" source="{MapperModel}" sourceKey="oMap" />			
 		<PropertyInjector targetKey="current_room" source="{MapperModel}" sourceKey="current_room" />
+		<PropertyInjector targetKey="bMappingEnabled" source="{MapperModel}" sourceKey="bMappingEnabled" />
 	</Injectors>	
+	
+	<EventHandlers type="{MapperEvent.MAPPER_START}">		
+		<MethodInvoker generator="{MapperModel}" method="mapperStart" />
+	</EventHandlers>	
+	
+	<EventHandlers type="{MapperEvent.MAPPER_STOP}">		
+		<MethodInvoker generator="{MapperModel}" method="mapperStop" />
+	</EventHandlers>	
+	
 
 	<EventHandlers type="{TelnetEvent.PARSE_LINE_DATA}">		
 		<MethodInvoker generator="{MapperModel}" method="checkLine" arguments="{event.data}" />
