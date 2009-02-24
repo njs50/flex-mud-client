@@ -5,29 +5,30 @@ package com.simian.mapper {
 	
 	import flash.display.Sprite;
 	
+	[Bindable]
 	public class MapperModel {
 	
-		public var verbose : Boolean = true;
-	
+		// Bindable public vars...
+		public var verbose : Boolean = true;	
+		public var oMap : Map;
+		public var current_room : Room;
+		public var lastRoom : Room;
+		public var current_layer : MapLayer;		
+		
+		
+		// private vars
 		private var dispatcher : Dispatcher = new Dispatcher();
-				
+		
 		private var exitingRegExp : RegExp = /You (\w+) (north|east|south|west|up|down)\.$/		
 		private var roomRegExp : RegExp = /([^\n]*)\n\[Exits:([^\]]*)\]\s*([^\n]*)\n([^\n]*)\n([^\n]*)/;
-		
-		[Bindable]
-		public var current_room : Room;
-		
 		
 		private var current_x : int = 0;
 		private var current_y : int = 0;
 		private var current_z : int = 0;
 				
 		private var move_direction : String = '';		
+				
 		
-		private var lastRoom : Room;
-		
-		[Bindable]
-		public var oMap : Map;
 		
 		
 		
@@ -114,7 +115,7 @@ package com.simian.mapper {
 			if (oRoomCheck != null) {
 			
 				var expectedRoom : Room = oMap.getRoom(current_x,current_y,current_z);
-				var newRoom : Room = new Room(oRoomCheck[1],oRoomCheck[3],oRoomCheck[4],oRoomCheck[5],current_x,current_y,current_z);
+				var newRoom : Room = new Room(oRoomCheck[1],oRoomCheck[2],oRoomCheck[3],oRoomCheck[4],oRoomCheck[5],current_x,current_y,current_z);
 				
 				// if this is a new room add it to the matrix
 				// if there was a room here already make sure it's this room then switch to it...				
@@ -127,18 +128,6 @@ package com.simian.mapper {
 					else newRoom = expectedRoom;									
 				}			
 
-		 		// deselect the last room (if there was one)
-		 		if (current_room != null) {
-		 			current_room.bSelected = false;
-		 			current_room.redraw(); 			
-		 		}
-
-		 		// select the new room
-		 		newRoom.bSelected = true;
-		 		newRoom.redraw();
-
-
-				
 								
 				// if this is the first room in the map then make it so!
 				if (current_room == null) { current_room = newRoom; lastRoom = current_room; } 	
@@ -153,8 +142,12 @@ package com.simian.mapper {
 					lastRoom = current_room;
 					current_room = newRoom;
 					
-					lastRoom.addExit(move_direction,current_room);
+					// add exit from this room to last room (rabies)					
+					// this is assuming all moves are bidirectional (no one way doors)
 					current_room.addExit(reverseDirection(move_direction),lastRoom);					
+					
+					// add exit from last room to this room
+					lastRoom.addExit(move_direction,current_room);					
 					
 					// now that we have processed the move reset move_direction;
 					move_direction = '';
@@ -166,7 +159,18 @@ package com.simian.mapper {
 					if ( ! newRoom.match_room(current_room) ) errorMessage('room change detected but no move direction was noticed!' );
 						 
 				} 
-								
+
+
+		 		// deselect the last room (if there was one)
+		 		if (lastRoom != null) {
+		 			lastRoom.bSelected = false;
+		 			lastRoom.redraw(); 			
+		 		}
+
+		 		// select the new room
+		 		current_room.bSelected = true;
+		 		current_room.redraw();
+
 								
 
 				// despatch a room change event
@@ -174,8 +178,6 @@ package com.simian.mapper {
 				mEvent = new MapperEvent(MapperEvent.CHANGE_ROOM);        				
 				dispatcher.dispatchEvent(mEvent);
 			
-				trace(current_x.toString() + ' ::: ' + current_y.toString());								
-								
 								
 				if (verbose) errorMessage('room detected : ' + newRoom.room_name );
 			}
@@ -210,7 +212,7 @@ package com.simian.mapper {
 
 		private function reverseDirection(direction:String) : String {
 		
-			switch (direction) {
+			switch (direction.toLowerCase()) {
 			
 				case 'north':
 					return 'south';

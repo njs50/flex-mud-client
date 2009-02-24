@@ -11,7 +11,7 @@ package com.simian.mapper
 		public function Exit(_direction:String = '',_room:Room = null,_command:String = '')
 		{
 			direction = _direction;
-			room = _room;
+			if (_room != null) room = _room;
 			command = _command;
 		}
 

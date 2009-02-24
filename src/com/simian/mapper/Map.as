@@ -10,8 +10,6 @@ package com.simian.mapper
 		[Bindable]
 		public var map_name : String;
 		
-		[Bindable]
-		public var current_layer : MapLayer;
 		
 		public function Map(_name:String = '')
 		{
@@ -31,14 +29,16 @@ package com.simian.mapper
 			var xPointer : Object;
 			var room : Room;
 			
+			var current_layer : MapLayer;
+			
 			// find it in the z array...
 			if (oRooms.hasOwnProperty(z)){
-				yPointer = oRooms[z].oRooms;				
+				current_layer = oRooms[z];
+				yPointer = current_layer.oRooms;				
 			} 
 			else {				
 				current_layer = new MapLayer();
-				oRooms[z] = current_layer					
-				current_layer.setActiveLayer();	
+				oRooms[z] = current_layer									
 				yPointer = current_layer.oRooms;
 			}
 			
@@ -65,20 +65,21 @@ package com.simian.mapper
 			var y : String = i_y.toString();
 			var z : String = i_z.toString();
 			
+			var current_layer : MapLayer;
+			
 			var yPointer : Object;
 			var xPointer : Object;			
 			
 			// find it in the z array...
 			if (oRooms.hasOwnProperty(z)){
-				yPointer = oRooms[z].oRooms;
+				current_layer = oRooms[z];
+				yPointer = current_layer.oRooms;
 				current_layer.addRoom(room);
 			} 
 			else {				
 				current_layer = new MapLayer();
-				oRooms[z] = current_layer
-				// rabies : we shouldn't be doing this stuff here. temp for testing. layer changes/management should be done elsewhere
-				current_layer.addRoom(room);						
-				current_layer.setActiveLayer();	
+				oRooms[z] = current_layer				
+				current_layer.addRoom(room);										
 				yPointer = current_layer.oRooms;
 			}			
 			

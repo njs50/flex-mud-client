@@ -15,7 +15,7 @@ package com.simian.mapper
  
 		private var _map : Map; 		
 		private var mapSprite : Sprite;		
-		private var current_layer : Sprite;	 
+		private var current_layer_sprite : Sprite;	 
 
 		[Bindable]
 		public var current_room : Room;
@@ -54,10 +54,10 @@ package com.simian.mapper
 
 
 		public function changeLayer() : void {
-			if (_map.current_layer != null) {			
-				if (current_layer != null) mapSprite.removeChild(current_layer);								
-				current_layer = _map.current_layer.mapSprite
-				mapSprite.addChild(current_layer);	
+			if (current_room != null) {							
+				if (current_layer_sprite != null) mapSprite.removeChild(current_layer_sprite);													
+				current_layer_sprite = _map.oRooms[current_room.room_z].mapSprite
+				mapSprite.addChild(current_layer_sprite);	
 			}
 		}
 
@@ -68,7 +68,7 @@ package com.simian.mapper
 
 
         private function resizeHandler(event:Event) : void{			
-			if (current_layer != null && current_room != null) centerMap();       	
+			if (current_layer_sprite != null && current_room != null) centerMap();       	
         }
 
 
@@ -101,7 +101,7 @@ package com.simian.mapper
 		
 		private function resizeScrollBars() : void {
 			
-			var mapRect : Rectangle = mapSprite.getBounds(current_layer);
+			var mapRect : Rectangle = mapSprite.getBounds(current_layer_sprite);
 			
 			// set scroll bar sizes
 			// rabies : this needs a bunch of work (or maybe the scrolling code does).
@@ -123,8 +123,18 @@ package com.simian.mapper
 		// centers the map on the current room
 		private function centerMap() : void {
 			
-			current_layer.x = (this.width / 2) - current_room.x;
-			current_layer.y = (this.height / 2) - current_room.y ;						  
+			// check that we have actually loaded a map, if not load the current one
+			if (current_layer_sprite == null) changeLayer();
+			
+			// only reposition if we have moved outside of the middle of the screen	
+			
+			// calc our current x and y relative to the sprites position
+			var current_x : int = current_layer_sprite.x + current_room.x;
+			var current_y : int = current_layer_sprite.y + current_room.y;
+			
+			// if we are outside the middle half of the screen reposition that axis		
+			if(	current_x < (this.width * 0.25) || current_x > (this.width * 0.75) ) current_layer_sprite.x = (this.width / 2) - current_room.x;
+			if(	current_y < (this.height * 0.25) || current_y > (this.height * 0.75) ) current_layer_sprite.y = (this.height / 2) - current_room.y ;						  
 			
 			resizeScrollBars();
 					

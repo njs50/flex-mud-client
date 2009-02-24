@@ -11,7 +11,7 @@ package com.simian.mapper
 		private static const sprite_area : int = 29;
 		private static const join_size : int = 5;
 		
-		public var room_name : String; 		
+		public var room_name : String; 				
 		public var room_line1 : String;
 		public var room_line2 : String;
 		public var room_line3 : String;
@@ -23,8 +23,10 @@ package com.simian.mapper
 				
 		public var bSelected : Boolean = false;
 		
-		public function Room(_name:String = '',_line1:String = '',_line2:String = '',_line3:String = '', _x : int = 0, _y : int = 0, _z:int = 0, _aExits:Array = null)
+		public function Room(_name:String = '',exits_string:String = '',_line1:String = '',_line2:String = '',_line3:String = '', _x : int = 0, _y : int = 0, _z:int = 0, _aExits:Array = null)
 		{
+
+			
 			room_name = _name;
 			room_line1 = _line1;
 			room_line2 = _line2;
@@ -32,8 +34,20 @@ package com.simian.mapper
 			room_x = _x;
 			room_y = _y;
 			room_z = _z;
+			
+			
+			// set us up the exits
 			if (room_aExits == null) room_aExits = new Array();
 			else room_aExits = _aExits;
+			
+			// parse any exits out of the optinal exit string (these are untested exits)
+			var exitsRegexp : RegExp = /(north|east|south|west|up|down)/ig;			
+			var oExits : Object;
+			
+			while (oExits = exitsRegexp.exec(exits_string)) {
+				addExit(oExits[1],null);
+			}
+			
 			
 			// draw us a sprite
 			redraw();
@@ -73,27 +87,32 @@ package com.simian.mapper
 
 			// draw in any exits
 			for each (var exit : Exit in this.room_aExits ) {
-
+				
+				var join_gap : int = 0;
+				
+				// if this exit hasn't been linked to a room yet leave a gap
+				if (exit.room == null) join_gap = 2;
+				
 				switch (exit.direction) {
 				
 					case 'north':
 						this.graphics.moveTo(midpoint,join_size);
-						this.graphics.lineTo(midpoint,0);
-					break;
-	
-					case 'south':
-						this.graphics.moveTo(midpoint,sprite_area - join_size);
-						this.graphics.lineTo(midpoint,sprite_area);						
-					break;
-	
-					case 'east':
-						this.graphics.moveTo(sprite_area - join_size,midpoint);
-						this.graphics.lineTo(sprite_area,midpoint);						
+						this.graphics.lineTo(midpoint,0 + join_gap);
 					break;
 	
 					case 'west':
 						this.graphics.moveTo(join_size,midpoint);
-						this.graphics.lineTo(0,midpoint);												
+						this.graphics.lineTo(0 + join_gap,midpoint);												
+					break;
+	
+					case 'south':
+						this.graphics.moveTo(midpoint,sprite_area - join_size);
+						this.graphics.lineTo(midpoint,sprite_area - join_gap);						
+					break;
+	
+					case 'east':
+						this.graphics.moveTo(sprite_area - join_size,midpoint);
+						this.graphics.lineTo(sprite_area - join_gap,midpoint);						
 					break;
 	
 					case 'up':
@@ -141,6 +160,7 @@ package com.simian.mapper
 			// can't be arsed doing that just yet...			
 			for each (var exit : Exit in this.room_aExits ) {
 				if (exit.direction == direction) {													
+					if (exit.room != to_room && to_room != null) exit.room = to_room;
 					bExists = true;
 				}
 			}
@@ -148,8 +168,8 @@ package com.simian.mapper
 			if (!bExists) {
 				var newExit : Exit = new Exit(direction,to_room,direction);
 				this.room_aExits.push(newExit); 				
-				// update the sprite.
-				redraw();				
+				// update the sprite (if this isn't being called from the contructor i.e untested exit)
+				if (to_room != null) redraw();
 			}
 			
 		}
