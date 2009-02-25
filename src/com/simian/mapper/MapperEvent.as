@@ -12,13 +12,14 @@ package com.simian.mapper {
 		public static const MAPPER_STOP : String = "stopMapperRecording";
 		public static const MAPPER_FIND : String = "findMapLocation";
 		
+		public static const MAPPER_SELECT_ROOM : String = "mapSelectLocation";
+		
 		// EVENT DATA				
-			
+		public var room : Room; 	
 							
-		public function MapperEvent(type:String, bubbles:Boolean = true, cancelable:Boolean = false) {		
-			
-			super(type,bubbles,cancelable);				
-					
+
+		public function MapperEvent(type:String, bubbles:Boolean = true, cancelable:Boolean = false) {								
+			super(type,bubbles,cancelable);									
 		}
 
 	}

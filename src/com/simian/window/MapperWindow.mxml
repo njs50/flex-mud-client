@@ -32,15 +32,9 @@
   	public var bMappingEnabled : Boolean = false;
   
   
- 	private function init() : void {
- 		
- 		 updateToggleLabel();
- 		
+ 	private function init() : void { 		
+ 		 updateToggleLabel(); 		
  	} 
- 	
- 	private function wtf() : void { 		 		
- 		trace('wtf'); 		
- 	}
  	
  	private function updateToggleLabel() : void {
  		if (bMappingEnabled) toggle_mapper.label = 'stop mapping';
@@ -67,6 +61,11 @@
  	
  	private function find() : void {
  		
+ 		// despatch a mapping start/stop even
+    	var mEvent : MapperEvent;       	
+		mEvent = new MapperEvent(MapperEvent.MAPPER_FIND);
+		dispatchEvent(mEvent);
+		
  	}
   
   ]]>  
@@ -78,7 +77,7 @@
 
 	<mx:HBox>		
 		<mx:Button id="toggle_mapper" click="toggle_mapping()" />
-		<!-- <mx:Button label="find" /> -->	
+		<mx:Button label="find" click="find()" />	
 	</mx:HBox>
 	
 

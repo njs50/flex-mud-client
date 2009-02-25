@@ -26,6 +26,16 @@
 	<EventHandlers type="{MapperEvent.MAPPER_STOP}">		
 		<MethodInvoker generator="{MapperModel}" method="mapperStop" />
 	</EventHandlers>	
+
+	<EventHandlers type="{MapperEvent.MAPPER_FIND}">		
+		<MethodInvoker generator="{MapperModel}" method="findMe" />
+	</EventHandlers>	
+	
+	<EventHandlers type="{MapperEvent.MAPPER_SELECT_ROOM}">		
+		<MethodInvoker generator="{MapperModel}" method="selectRoom" arguments="{event.room}" />
+	</EventHandlers>	
+	
+	
 	
 
 	<EventHandlers type="{TelnetEvent.PARSE_LINE_DATA}">		

@@ -1,10 +1,14 @@
 package com.simian.mapper
 {
-	import flash.display.Shape;	
+	import com.asfusion.mate.events.Dispatcher;
+	
+	import flash.display.Sprite;
+	import flash.events.Event;
+	import flash.events.MouseEvent;	
 	
 	
 	[RemoteClass(alias="com.simian.mapper.Room")]		
-	public class Room extends Shape
+	public class Room extends Sprite
 	{
 		
 		// size of sprite 
@@ -20,13 +24,17 @@ package com.simian.mapper
 		public var room_x : int;
 		public var room_y : int;						
 		public var room_z : int;
+		
+		public var travel_cost : int = 1;
 				
+		public var bCurrentroom : Boolean = false;		
 		public var bSelected : Boolean = false;
+		
+		private var dispatcher : Dispatcher = new Dispatcher();
 		
 		public function Room(_name:String = '',exits_string:String = '',_line1:String = '',_line2:String = '',_line3:String = '', _x : int = 0, _y : int = 0, _z:int = 0, _aExits:Array = null)
 		{
 
-			
 			room_name = _name;
 			room_line1 = _line1;
 			room_line2 = _line2;
@@ -48,6 +56,8 @@ package com.simian.mapper
 				addExit(oExits[1],null);
 			}
 			
+			// add an event handler for if someone clicks on us
+			addEventListener(MouseEvent.CLICK,clickHandler);
 			
 			// draw us a sprite
 			redraw();
@@ -55,7 +65,15 @@ package com.simian.mapper
 		}
 
 
-		
+		public function clickHandler(event:Event) : void {
+
+			// broadcast that the user has selected this room        	
+        	var mEvent : MapperEvent;       	
+			mEvent = new MapperEvent(MapperEvent.MAPPER_SELECT_ROOM);        			
+			mEvent.room = this;
+			dispatcher.dispatchEvent(mEvent);			
+			
+		}
 
 
 
@@ -72,7 +90,7 @@ package com.simian.mapper
 			
 			
 			// change border colour if this is selected
-			if (this.bSelected){				
+			if (this.bCurrentroom){				
 				this.graphics.lineStyle(1,0xff0000);				
 			}else {				
 				this.graphics.lineStyle(1,0x000000);				
@@ -82,6 +100,13 @@ package com.simian.mapper
 			this.graphics.beginFill(0x00ff00);			
 			this.graphics.drawRect(join_size,join_size,length,length);			
 			this.graphics.endFill();
+			
+			// draw a box round it if it's selected
+			if (this.bSelected) {
+				this.graphics.lineStyle(2,0x0000ff);
+				this.graphics.drawRect(join_size - 1,join_size - 1,length + 3,length + 3);									
+			}
+			
 			
 			this.graphics.lineStyle(1,0x000000);
 

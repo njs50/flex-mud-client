@@ -7,13 +7,15 @@ package com.simian.mapper {
 	public class MapperModel {
 	
 		// Bindable public vars...
-		public var verbose : Boolean = true;	
+		public var verbose : Boolean = false;	
 		public var oMap : Map;
 		public var current_room : Room;
 		public var lastRoom : Room;
 		public var current_layer : MapLayer;		
 		public var bMappingEnabled : Boolean = false;
 		public var aMaps : Array;
+		
+		public var selected_room : Room;
 		
 		// private vars
 		private var dispatcher : Dispatcher = new Dispatcher();
@@ -57,6 +59,74 @@ package com.simian.mapper {
 		public function mapperStop() : void {
 			bMappingEnabled = false;
 		}
+
+
+		public function selectRoom(room : Room) : void {
+			// trace('someone clicked ::: ' + room.room_name);
+			
+			if (selected_room != null) {
+				selected_room.bSelected = false;
+				selected_room.redraw();				
+			}
+			
+			selected_room = room;
+			selected_room.bSelected = true;
+			selected_room.redraw();				
+			
+		}
+
+
+		// finds the users position in the event they've become desync'd or just logged in...
+		public function findMe() : void {
+			
+			move_direction = '';
+			
+			var searchMap : Map;
+			
+			searchMap = oMap;
+			
+			var thisRoom : Room = searchMap.find(current_room);
+			
+			if (thisRoom != null) {
+				
+				oMap = searchMap;
+				
+				
+				oMap == oMap;
+				
+		 		// deselect the current room
+		 		current_room.bCurrentroom = false;
+		 		current_room.redraw();			
+				
+				current_room = thisRoom;
+				current_layer = oMap.oRooms[current_room.room_z];
+				lastRoom = current_room;
+				current_x = thisRoom.room_x;
+				current_y = thisRoom.room_y;
+				current_z = thisRoom.room_z;
+				
+				// select the new current room
+		 		current_room.bCurrentroom = true;
+		 		current_room.redraw();
+
+				// despatch a room change event to let the viewer know we have moved
+		    	var mEvent : MapperEvent;       	
+				mEvent = new MapperEvent(MapperEvent.CHANGE_ROOM);        				
+				dispatcher.dispatchEvent(mEvent);
+				
+				
+				// our work here is done, we are found...
+				return;
+				
+			} else {
+				errorMessage('Your current room could not be found in the map (you might try looking around)');
+				bMappingEnabled = false;
+			}
+			
+		}
+
+
+
 
 		// scans a line of text for a move
 		public function checkLine(text:String) : void {
@@ -108,7 +178,7 @@ package com.simian.mapper {
 					}
 					
 				} else{
-					if ( ! newRoom.match_room(expectedRoom) ) errorMessage('moved to an existing room but it wasn\'t what we expected' );
+					if ( ! newRoom.match_room(expectedRoom) ) errorMessage('moved but not to where we expected' );
 					else newRoom = expectedRoom;									
 				}			
 								
@@ -134,24 +204,7 @@ package com.simian.mapper {
 					// now that we have processed the move reset move_direction;
 					move_direction = '';
 
-					// update the current room pointer
-					lastRoom = current_room;
-					current_room = newRoom;
 
-			 		// deselect the last room (if there was one)
-			 		if (lastRoom != null) {
-			 			lastRoom.bSelected = false;
-			 			lastRoom.redraw(); 			
-			 		}
-	
-			 		// select the new room
-			 		current_room.bSelected = true;
-			 		current_room.redraw();
-
-					// despatch a room change event to let the viewer know we have moved
-			    	var mEvent : MapperEvent;       	
-					mEvent = new MapperEvent(MapperEvent.CHANGE_ROOM);        				
-					dispatcher.dispatchEvent(mEvent);
 				
 				// no move detected. maybe they are just lookin around.
 				} else {
@@ -160,6 +213,29 @@ package com.simian.mapper {
 					if ( ! newRoom.match_room(current_room) ) errorMessage('room change detected but no move direction was noticed!' );
 						 
 				} 
+
+				// if the room has changed update things here
+				if ( ! newRoom.match_room(current_room) ) {
+				
+					// update the last/current room pointer
+					lastRoom = current_room;
+					current_room = newRoom;
+
+			 		// deselect the last room (if there was one)
+			 		if (lastRoom != null) {
+			 			lastRoom.bCurrentroom = false;
+			 			lastRoom.redraw(); 			
+			 		}
+	
+			 		// select the new room
+			 		current_room.bCurrentroom = true;
+			 		current_room.redraw();
+
+					// despatch a room change event to let the viewer know we have moved
+			    	var mEvent : MapperEvent;       	
+					mEvent = new MapperEvent(MapperEvent.CHANGE_ROOM);        				
+					dispatcher.dispatchEvent(mEvent);
+				}
 
 								
 				if (verbose) errorMessage('room detected : ' + newRoom.room_name );
