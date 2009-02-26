@@ -71,9 +71,52 @@ package com.simian.mapper {
 			
 			selected_room = room;
 			selected_room.bSelected = true;
-			selected_room.redraw();				
+			selected_room.redraw();		
+			
+			errorMessage('shortest path is' + shortestPath(current_room,selected_room));		
 			
 		}
+		
+		// djikstras shortest path algorithm
+		public function shortestPath (startRoom : Room, endRoom : Room) : String {
+			
+			var aFinal : Array = new Array();
+			var aAdjacent : Array = new Array();
+									
+			var current_node : PathNode = new PathNode(0,startRoom,''); 			
+			
+			while ( !nodeArrayContainsRoom(aFinal,endRoom) ) {
+				
+				// push the currnet_node (closest) onto the final nodes
+				aFinal.push( current_node );
+				
+				for each (var oExit : Exit in current_node.room.room_aExits) {				
+					// only add this if the room isn't already in aFinal (and it's actually an exit, not just a placeholder)				
+					if ( oExit.room != null && !nodeArrayContainsRoom(aFinal,oExit.room) ) aAdjacent.push( new PathNode( current_node.distance + oExit.room.travel_cost, oExit.room ,current_node.path + ' ' + oExit.direction ) );				
+				}
+				
+				// if there are still nodes to check continue. otherwise abandon ship
+				if (aAdjacent.length > 0) {
+					// sort the adjacent array so the closest thing will be last (to make for easy popping action)
+					aAdjacent = aAdjacent.sortOn( "distance", Array.NUMERIC | Array.DESCENDING );				
+					current_node = aAdjacent.pop();						
+					// check if this is the room we are looking for!
+					if (current_node.room == endRoom) return current_node.path;								
+				} else break;			
+			} 
+						
+			errorMessage('Target room appears unreachable from your current location');
+			return '';
+			
+		}
+		
+		public function nodeArrayContainsRoom(aNode:Array, target_room: Room) : Boolean {			
+			for each (var node : PathNode in aNode) {
+				if ( node.room == target_room) return true; 
+			} 						
+			return false;			
+		}
+		
 
 
 		// finds the users position in the event they've become desync'd or just logged in...

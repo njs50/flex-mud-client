@@ -103,8 +103,8 @@ package com.simian.mapper
 			
 			// draw a box round it if it's selected
 			if (this.bSelected) {
-				this.graphics.lineStyle(2,0x0000ff);
-				this.graphics.drawRect(join_size - 1,join_size - 1,length + 3,length + 3);									
+				this.graphics.lineStyle(1,0x0000ff);
+				this.graphics.drawRect(join_size - 1,join_size - 1,length + 2,length + 2);									
 			}
 			
 			
