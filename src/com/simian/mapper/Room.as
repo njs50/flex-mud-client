@@ -7,14 +7,14 @@ package com.simian.mapper
 	import flash.events.MouseEvent;	
 	
 	
-	[RemoteClass(alias="com.simian.mapper.Room")]		
+	[RemoteClass(alias="com.simian.mapper.Room")]			
 	public class Room extends Sprite
 	{
 		
 		// size of sprite 
 		private static const sprite_area : int = 29;
 		private static const join_size : int = 5;
-		
+				
 		public var room_name : String; 				
 		public var room_line1 : String;
 		public var room_line2 : String;

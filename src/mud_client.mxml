@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:Application 	
 	xmlns:mx="http://www.adobe.com/2006/mxml"
-	xmlns:main="com.simian.main.*"		
-	paddingBottom="0"
-	paddingTop="0"
-	paddingLeft="0"
-	paddingRight="0"		  	 
+	xmlns:main="com.simian.main.*"	
+	styleName="noPadding"	
 >
+
+	<mx:Style source="mud_client.css"/>
 
 	<main:MainEventMap />		
 	
 	<!-- Module Event Maps -->
 	<scripting:ScriptingEventMap xmlns:scripting="com.simian.scripting.*" />
 	<mapper:MapperEventMap xmlns:mapper="com.simian.mapper.*" />
-	
-			
+					
 	<main:MainView />
 
 </mx:Application>

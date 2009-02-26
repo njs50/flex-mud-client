@@ -8,7 +8,8 @@
 	xmlns:mx="http://www.adobe.com/2006/mxml"	 
 	focusStart="in_command.setFocus();"
 	click="in_command.setFocus();"	
-	name="telnetWindow"		
+	name="telnetWindow"
+	styleName="noPadding"		
 >
 
 
@@ -136,9 +137,9 @@
 	  		defaultBGcolour = "{telnetSettings.defaultBGcolour}"	  		  	
 	  	/>
 	  	
-		<mx:HBox width="100%">
-			<mx:TextInput id="in_command" width="100%" keyDown="inputKeypress(event);" />			
-		</mx:HBox>
+		
+		<mx:TextInput id="in_command" width="100%" keyDown="inputKeypress(event);" />			
+		
 		
 	</mx:VBox>
 				
