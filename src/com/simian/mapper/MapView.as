@@ -37,7 +37,8 @@ package com.simian.mapper
             mapSprite.mask = this.maskShape;
                     
 
-		 	this.addEventListener(ScrollEvent.SCROLL, onScroll);            
+		 	this.addEventListener(ScrollEvent.SCROLL, onScroll);   
+		 	         
          	this.addEventListener(Event.RESIZE, resizeHandler);
             
         }		
@@ -73,15 +74,14 @@ package com.simian.mapper
 
 
         private function onScroll(event:ScrollEvent):void{
+        	
+        	trace('scroll event! ' + event.direction);
+        	
+        	var mapRect : Rectangle = mapSprite.getBounds(current_layer_sprite);
+        	
             if(event.direction==ScrollEventDirection.VERTICAL){
                 
-                this.mapSprite.y=-event.position;
-                if(mapSprite.y+mapSprite.height<this.height){
-                    mapSprite.y += this.width-(mapSprite.y+mapSprite.height)
-                }
-                if(mapSprite.y>0){
-                    mapSprite.y=0;
-                }
+                this.mapSprite.y = mapRect.height + (2 * this.height) - event.position;
                 
             }
             
@@ -103,16 +103,19 @@ package com.simian.mapper
 			
 			var mapRect : Rectangle = mapSprite.getBounds(current_layer_sprite);
 			
+			var midpoint : int = this.width / 2;
+			
+			
+			
 			// set scroll bar sizes
-			// rabies : this needs a bunch of work (or maybe the scrolling code does).
-			this.setScrollBarProperties(mapRect.width + (this.width / 2),this.width,mapRect.height + (this.height/2), this.height);									
 			
-			// potentially only 1/4 of the sprite is showing. i.e if you head all SE from exlpored land.
+			// so total width of the scroll bars is the width of the big sprite + one visible screen on each end.
+			// this allows the map to be just off the screen.
+			this.setScrollBarProperties(2* mapRect.width, this.width, 2 * mapRect.height, this.height);
 			
-			// set scroll bar positions
+			this.horizontalScrollPosition 	= mapRect.width + (2 * this.width) - mapRect.x; 			
+			this.verticalScrollPosition 	= mapRect.height + (2 * this.height) - mapRect.y;
 			
-			// this.verticalScrollPosition = 
-			// this.horizontalScrollPosition =
 			
 			// invalidate display list to force update of scroll bars
 			this.invalidateDisplayList();

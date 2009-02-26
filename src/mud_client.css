@@ -1,0 +1,17 @@
+/* CSS file */
+
+
+.standardPadding {
+	paddingBottom: 5;
+	paddingLeft: 5;
+	paddingRight: 5;
+	paddingTop: 5;	
+}	
+
+.noPadding {
+	paddingBottom: 0;
+	paddingLeft: 0;
+	paddingRight: 0;
+	paddingTop: 0;	
+}
+

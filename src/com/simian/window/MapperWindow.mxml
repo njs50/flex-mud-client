@@ -9,32 +9,54 @@
 	name="mapperWindow"		
  	creationComplete="init()"
  	title="{oMap.map_name}"
-	paddingLeft="5"
-	paddingRight="5"
-	paddingBottom="5"
-	paddingTop="5" 		 	
+ 	styleName="standardPadding"		 	
 >
 
 
   <mx:Script>
   <![CDATA[
+  	import mx.binding.utils.ChangeWatcher;
+  	
   	import com.simian.mapper.Room;
   	import com.simian.mapper.MapperEvent;
   	
   	import com.simian.mapper.Map;
 
+	import mx.binding.utils.BindingUtils;
+
+
+
   	[Bindable]
 	public var oMap : Map;
   
   	[Bindable]
-  	public var current_room : Room;
+  	public var current_room : Room = new Room();
   	
   	public var bMappingEnabled : Boolean = false;
   
+  	public var watcher:ChangeWatcher;
   
  	private function init() : void { 		
- 		 updateToggleLabel(); 		
+		updateToggleLabel();
+ 		
+ 		mapTabs.selectedIndex = 0;
+ 		mapTabs.selectedIndex = 1;
+ 		
+ 		watcher = ChangeWatcher.watch(this,"current_room",roomChange);
+ 		  		
  	} 
+ 	
+ 	private function roomChange(e:Event) : void {
+ 		
+ 		if (current_room != null) {
+ 			
+	 		form_heading.text = current_room.room_name;
+	 		form_desc.text = current_room.room_line1+ ' ' + current_room.room_line2 + ' ' + current_room.room_line3;
+	 		
+ 			mapview.changeRoom();
+ 		}
+ 		
+ 	}
  	
  	private function updateToggleLabel() : void {
  		if (bMappingEnabled) toggle_mapper.label = 'stop mapping';
@@ -71,24 +93,42 @@
   ]]>  
   </mx:Script>
 
-	<mate:Listener type="{MapperEvent.CHANGE_ROOM}" receive="mapview.changeRoom()" />
 	
-	<mate:Listener type="{MapperEvent.CHANGE_LAYER}" receive="mapview.changeLayer()" />	
+	<mx:TabNavigator id="mapTabs" width="100%" height="100%" verticalGap="2" paddingTop="2">
 
-	<mx:HBox>		
-		<mx:Button id="toggle_mapper" click="toggle_mapping()" />
-		<mx:Button label="find" click="find()" />	
-	</mx:HBox>
+		<mx:VBox label="Map" styleName="standardPadding">
+
+			<mx:HBox>		
+				<mx:Button id="toggle_mapper" click="toggle_mapping()" />
+				<mx:Button label="find" click="find()" />	
+			</mx:HBox>
+			
+			<mapper:MapView 
+				xmlns:mapper="com.simian.mapper.*" 		
+				map="{oMap}" 
+				width="100%" 
+				height="100%" 
+				id="mapview" 
+				current_room="{current_room}"
+			/>	
+		</mx:VBox>
+		
+		
+		
+		<mx:Form label="Current Room" width="100%" height="100%" styleName="standardPadding">
+			
+			<mx:FormItem label="Name : " width="100%">
+				<mx:Label id="form_heading" />
+			</mx:FormItem>
+
+			<mx:FormItem label="Desc : " width="100%">
+				<mx:TextArea id="form_desc" enabled="false" width="100%" height="60" />	
+			</mx:FormItem>
+			
+		</mx:Form>
+		
+	</mx:TabNavigator>
 	
-
-	<mapper:MapView 
-		xmlns:mapper="com.simian.mapper.*" 		
-		map="{oMap}" 
-		width="100%" 
-		height="100%" 
-		id="mapview" 
-		current_room="{current_room}"
-	/>	
 	
 	
 				
