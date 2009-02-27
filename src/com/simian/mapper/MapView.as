@@ -53,6 +53,22 @@ package com.simian.mapper
 			return _map;
 		}
 
+		
+		private function get internal_height() : int {			
+			if (this.horizontalScrollBar) {
+				return (this.height - this.horizontalScrollBar.height);
+			} 			
+			return this.height			
+		}
+
+		private function get internal_width() : int {			
+			if (this.verticalScrollBar) {
+				return (this.width - this.verticalScrollBar.width);
+			} 			
+			return this.width			
+		}
+
+
 
 		public function changeLayer() : void {
 			if (current_room != null) {							
@@ -75,46 +91,37 @@ package com.simian.mapper
 
         private function onScroll(event:ScrollEvent):void{
         	
-        	trace('scroll event! ' + event.direction);
+        	var mapRect : Rectangle = mapSprite.getBounds(this.mapSprite);
         	
-        	var mapRect : Rectangle = mapSprite.getBounds(current_layer_sprite);
+        	// need to readjust position if mapRect.x and y is no longer at (0,0)
         	
-            if(event.direction==ScrollEventDirection.VERTICAL){
-                
-                this.mapSprite.y = mapRect.height + (2 * this.height) - event.position;
-                
+            if(event.direction==ScrollEventDirection.VERTICAL){                
+                this.mapSprite.y = event.position - mapRect.height - mapRect.y;                
             }
             
             // regular horizontal scrolling
             else{
-                this.mapSprite.x=-event.position;
-                if(mapSprite.x+mapSprite.width<this.width){
-                    mapSprite.x += this.width-(mapSprite.x+mapSprite.width)
-                }
-                if(mapSprite.x>0){
-                    mapSprite.x=0;
-                }
-            }
+                this.mapSprite.x =  event.position - mapRect.width - mapRect.x;
+            }                       
                        
         }		
 
 		
 		private function resizeScrollBars() : void {
 			
-			var mapRect : Rectangle = mapSprite.getBounds(current_layer_sprite);
-			
-			var midpoint : int = this.width / 2;
-			
-			
-			
+			// figure out the boundaries/position of the sprite
+			var mapRect : Rectangle = mapSprite.getBounds(this.mapSprite);
+
 			// set scroll bar sizes
 			
 			// so total width of the scroll bars is the width of the big sprite + one visible screen on each end.
 			// this allows the map to be just off the screen.
-			this.setScrollBarProperties(2* mapRect.width, this.width, 2 * mapRect.height, this.height);
-			
-			this.horizontalScrollPosition 	= mapRect.width + (2 * this.width) - mapRect.x; 			
-			this.verticalScrollPosition 	= mapRect.height + (2 * this.height) - mapRect.y;
+			this.setScrollBarProperties(mapRect.width + this.internal_width, 1 , mapRect.height + this.internal_height, 1);
+
+
+			// set scroll positions			
+			this.horizontalScrollPosition 	= mapRect.width  + mapRect.x + this.mapSprite.x; 			
+			this.verticalScrollPosition 	= mapRect.height + mapRect.y + this.mapSprite.y;
 			
 			
 			// invalidate display list to force update of scroll bars
@@ -126,20 +133,24 @@ package com.simian.mapper
 		// centers the map on the current room
 		private function centerMap() : void {
 			
+			trace('centering map');
+			
 			// check that we have actually loaded a map, if not load the current one
 			if (current_layer_sprite == null) changeLayer();
 			
 			// only reposition if we have moved outside of the middle of the screen	
 			
 			// calc our current x and y relative to the sprites position
-			var current_x : int = current_layer_sprite.x + current_room.x;
-			var current_y : int = current_layer_sprite.y + current_room.y;
+			var current_x : int = mapSprite.x + current_room.x;
+			var current_y : int = mapSprite.y + current_room.y;
 			
 			// if we are outside the middle half of the screen reposition that axis		
-			if(	current_x < (this.width * 0.25) || current_x > (this.width * 0.75) ) current_layer_sprite.x = (this.width / 2) - current_room.x;
-			if(	current_y < (this.height * 0.25) || current_y > (this.height * 0.75) ) current_layer_sprite.y = (this.height / 2) - current_room.y ;						  
+			if(	current_x < (this.internal_width * 0.25) || current_x > (this.internal_width * 0.75) ) mapSprite.x = (this.internal_width / 2) - current_room.x;
+			if(	current_y < (this.internal_height * 0.25) || current_y > (this.internal_height * 0.75) ) mapSprite.y = (this.internal_height / 2) - current_room.y ;						  
 			
 			resizeScrollBars();
+			
+			trace('current x,y (' + current_x.toString() + ',' + current_y.toString() + ')');
 					
 		}
 
