@@ -26,7 +26,7 @@ package com.simian.profile {
 		// local shared object data
 		private var localData : SharedObject;
 		
-		private static const PROFILE_VERSION : String = "0.000006d";
+		private static const PROFILE_VERSION : String = "0.000006e";
 		
 		private var dispatcher : Dispatcher = new Dispatcher();
 
@@ -61,9 +61,11 @@ package com.simian.profile {
 			_aTriggerGroup.source 	= localData.data.aTriggerGroup;			
 			_aWindowSettings 		= localData.data.aWindowSettings;
 			_telnetSettings			= localData.data.telnetSettings;	
+		
+			// remove any redundant trigger groups
+			removeEmptyGroups();
 														
 		}
-		
 		
 		
 		
@@ -210,6 +212,9 @@ package com.simian.profile {
         		telnetSettings = importObject(configObj.telnetSettings, TelnetSettings) as TelnetSettings;
         	}						
 
+			// remove any redundant trigger groups
+			removeEmptyGroups();
+
         	// send event to restore main telnet window (to loaded state)
 			mdiEvent = new WindowEvent(WindowEvent.OPEN_TELNET_WINDOW);							
 			dispatcher.dispatchEvent(mdiEvent);
@@ -243,6 +248,26 @@ package com.simian.profile {
 			}						
 			return aOut;
 		}
+
+  		private  function removeEmptyGroups() : void {
+  			
+  			// loop through all the groups (apart from the first which is null (ungrouped) )
+  			for (var i : int = aTriggerGroup.length -1; i > 0; i--) {
+  				
+  				var thisGroup : TriggerGroup = aTriggerGroup[i];  				
+  				var bDelete : Boolean = true;
+  				
+  				// check all the triggers to see if any are in this here group
+  				for each (var trig : Trigger in aTrigger.source){ if ( trig.triggerGroup == thisGroup ) bDelete = false; } 
+  				for each (var alias : Alias in aAlias.source){ if ( alias.triggerGroup == thisGroup ) bDelete = false; }
+  				
+  				// delete the unlucky ones
+  				if (bDelete) aTriggerGroup.removeItemAt(i);
+  				
+  			}
+  			
+  		}		
+
 
 
 	}

@@ -12,49 +12,76 @@
 	paddingBottom="5"
 	paddingTop="5" 	
 	focusEnd="saveAlias()"
+	creationComplete="init()"
 >
 
 
   <mx:Script>
   <![CDATA[
+  	import com.simian.profile.TriggerGroup;
   	import com.simian.profile.Alias;
   	import mx.collections.ArrayCollection;
 
 		[Bindable]
-		public var editor_aAlias : ArrayCollection = new ArrayCollection(); 
+		public var aAlias : ArrayCollection = new ArrayCollection(); 
+		
+		[Bindable]
+		public var aTriggerGroup : ArrayCollection = new ArrayCollection();
 		
 		public var editor_alias : Alias;
+
+
+		private function init() : void {
+			applyFilter();
+		}
+
 		
 		private function addAlias() : void {
 			
 			// save anythign being edited
 			if (editor_alias) saveAlias();
+
+			groupList.selectedIndex = 0;
+			applyFilter();
 			
 			var newAlias : Alias = new Alias();
-			editor_aAlias.addItem(newAlias);
-			aliasList.selectedIndex = editor_aAlias.length - 1;	
+			aAlias.addItem(newAlias);
+			aliasList.selectedIndex = aAlias.length - 1;	
 			
 			selectAlias();		
 		} 
   		
   		private function removeAlias() : void {
   			if (aliasList.selectedIndex >= 0){
-  				editor_aAlias.removeItemAt(aliasList.selectedIndex);  				
+  				aAlias.removeItemAt(aliasList.selectedIndex);  				
   			} 
   		}
   		
   		public function saveAlias() : void {  	
   			
   			if (alias_name.text.length > 0) {
+	  			
 	  			if (!editor_alias) {
+					groupList.selectedIndex = 0;
+					applyFilter();	  				
 	  				editor_alias = new Alias();
-					editor_aAlias.addItem(editor_alias);
-					aliasList.selectedIndex = editor_aAlias.length - 1;
+					aAlias.addItem(editor_alias);
+					aliasList.selectedIndex = aAlias.length - 1;
 	  			}  
 	  			
 	  			editor_alias.trigger = alias_name.text;
 	  			editor_alias.command = alias_command.text; 
 	
+	  			// if this is a new group
+	  			if (trigger_group.inputText != null && trigger_group.inputText != trigger_group.selectedLabel) {
+	  				aTriggerGroup.addItem(new TriggerGroup(trigger_group.inputText));
+	  				editor_alias.triggerGroup = aTriggerGroup.getItemAt(aTriggerGroup.length - 1) as TriggerGroup;
+	  				trigger_group.selectedItem = editor_alias.triggerGroup;	  				
+	  			} else editor_alias.triggerGroup = trigger_group.selectedItem as TriggerGroup;
+	  			editor_alias.bEnabled = trigger_bEnabled.selected;
+
+				applyFilter();
+
 	  			aliasList.invalidateList();
 	  		  			 			
   		 	}		 			  			
@@ -67,35 +94,58 @@
 
 			if (aliasList.selectedItem) {
 	  			
-	  			editor_alias = aliasList.selectedItem as Alias;	  			
+	  			editor_alias = aliasList.selectedItem as Alias;	  
+	  						
 	  			alias_name.text = editor_alias.trigger;
 	  			alias_command.text = editor_alias.command;	  					
+	  				  			
+	  			if (editor_alias.triggerGroup == null) trigger_group.selectedIndex = 0;	  			
+	  			else trigger_group.selectedItem = editor_alias.triggerGroup;
+	  			
+	  			trigger_bEnabled.selected = editor_alias.bEnabled;	  				  			
+	  			
 	  			alias_name.setFocus();		
+	  			
   			}  			
   		}
 
-  		private function getLabel( alias : Alias) : String {
-  			if (alias.trigger.length > 0) return alias.trigger;
-  			else return '[unnamed alias]';
-  		}
-
+		private function applyFilter() : void {		
+			aAlias.filterFunction = listFilter;
+			aAlias.refresh();			
+		}
+	
+		private function listFilter(t : Alias) : Boolean {
+			if (groupList == null) return true;	
+			if (groupList.selectedIndex == 0) return (t.triggerGroup == null);		
+			return ( t.triggerGroup == groupList.selectedItem );			
+		}
 
   		
   ]]>  
   </mx:Script>
   
 	<mx:HBox width="100%" height="100%">
+
+	<mx:VBox height="100%" width="150">		
+	  	<mx:ComboBox id="groupList" dataProvider="{aTriggerGroup}" labelField="name"  width="150" change="applyFilter()" />  
+	    <mx:List  id="aliasList" dataProvider="{aAlias}" height="100%" width="150" change="selectAlias()" />
+	</mx:VBox>
 	  	
-		<mx:List  id="aliasList" dataProvider="{editor_aAlias}" height="100%" width="150" change="selectAlias()" labelFunction="getLabel" />
+		
 		
 		<mx:VBox width="100%" height="100%">
 			
 			<mx:Label text="If you type: "/>
 			<mx:TextInput id="alias_name" width="100%"/>
-			
+
+ 			<mx:Label text="Group: "/>
+ 			<extended:EditableComboBox id="trigger_group" dataProvider="{aTriggerGroup}" labelField="name" editable="true" width="100%" xmlns:extended="com.simian.extendedComponents.*" />
+ 			
 	        <mx:Label text="I'll type: (p.s use %1 .. %x for parameters 1 to x)  "/>
 	        <mx:TextArea id="alias_command" width="100%" height="100%"/>				
 		
+			<mx:CheckBox id="trigger_bEnabled" label="Enabled" selected="true" />
+			
 		</mx:VBox>
 		
 	</mx:HBox>

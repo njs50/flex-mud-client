@@ -78,30 +78,15 @@
   		}
   		
   		
-  		public function removeEmptyGroups() : void {
-  			
-  			// loop through all the groups (apart from the first which is null (ungrouped) )
-  			for (var i : int = aTriggerGroup.length -1; i > 0; i--) {
-  				
-  				var thisGroup : TriggerGroup = aTriggerGroup[i];
-  				
-  				var bDelete : Boolean = true;
-  				
-  				// check all the triggers to see if any are in this here group
-  				for each (var trig : Trigger in aTrigger.source){ if ( trig.triggerGroup == thisGroup ) bDelete = false; } 
-  				
-  				// delete the unlucky ones
-  				if (bDelete) aTriggerGroup.removeItemAt(i);
-  				
-  			}
-  			
-  		}
+
   		
   		public function saveTrigger() : void {  	
   			
   			if(trigger_pattern.text.length == 0) trigger_bEnabled.selected = false;
   			
   			if (!editor_trigger) {
+				groupList.selectedIndex = 0;
+				applyFilter();  				
   				editor_trigger = new Trigger();
 				aTrigger.addItem(editor_trigger);
 				triggerList.selectedIndex = aTrigger.length - 1;
@@ -115,13 +100,10 @@
   				editor_trigger.triggerGroup = aTriggerGroup.getItemAt(aTriggerGroup.length - 1) as TriggerGroup;
   				trigger_group.selectedItem = editor_trigger.triggerGroup;	  				
   			} else editor_trigger.triggerGroup = trigger_group.selectedItem as TriggerGroup;
+  			editor_trigger.bEnabled = trigger_bEnabled.selected;
   			editor_trigger.command = trigger_command.text; 
   			editor_trigger.parse_type = int(trigger_parse_type.selectedValue);
-  			editor_trigger.bEnabled = trigger_bEnabled.selected;
-  				
-  			// see if we've emptied any trigger groups, if so delete em	
-  			removeEmptyGroups();
-  		
+  				  		
   			triggerList.invalidateList();
   			
   		  	  		  		  
@@ -141,8 +123,8 @@
 	  			trigger_command.text = editor_trigger.command;  
 	  			if (editor_trigger.triggerGroup == null) trigger_group.selectedIndex = 0;	  			
 	  			else trigger_group.selectedItem = editor_trigger.triggerGroup;
-	  			trigger_parse_type.selectedValue = editor_trigger.parse_type;	
 	  			trigger_bEnabled.selected = editor_trigger.bEnabled;	  			
+	  			trigger_parse_type.selectedValue = editor_trigger.parse_type;	
 	  			trigger_name.setFocus();		
   			}
   		}

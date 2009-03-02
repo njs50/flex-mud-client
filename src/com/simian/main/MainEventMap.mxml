@@ -47,7 +47,8 @@
 	</Injectors>
 
 	<Injectors target="{AliasEditor}">
-		<PropertyInjector targetKey="editor_aAlias" source="{UserModel}" sourceKey="aAlias" />
+		<PropertyInjector targetKey="aAlias" source="{UserModel}" sourceKey="aAlias" />
+		<PropertyInjector targetKey="aTriggerGroup" source="{UserModel}" sourceKey="aTriggerGroup" />
 	</Injectors>
 	
 	<Injectors target="{TriggerEditor}">
