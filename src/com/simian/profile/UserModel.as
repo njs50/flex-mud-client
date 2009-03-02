@@ -1,7 +1,6 @@
 package com.simian.profile {		
 	
 	import com.asfusion.mate.events.Dispatcher;
-	import com.simian.telnet.TelnetEvent;
 	import com.simian.telnet.TelnetSettings;
 	import com.simian.window.WindowEvent;
 	
@@ -20,15 +19,12 @@ package com.simian.profile {
 		private var _aAlias : ArrayCollection;
 		private var _aTrigger : ArrayCollection;
 		private var _aWindowSettings	: Array;		
-		
-		// global settings
-		[Bindable]
-		public var telnetSettings : TelnetSettings
+		private var _telnetSettings : TelnetSettings
 		
 		// local shared object data
 		private var localData : SharedObject;
 		
-		private static const PROFILE_VERSION : String = "0.000005h";
+		private static const PROFILE_VERSION : String = "0.000005i";
 		
 		private var dispatcher : Dispatcher = new Dispatcher();
 
@@ -59,7 +55,7 @@ package com.simian.profile {
 			_aAlias.source 		= localData.data.aAlias;			
 			_aTrigger.source 	= localData.data.aTrigger;			
 			_aWindowSettings 	= localData.data.aWindowSettings;
-			telnetSettings		= localData.data.telnetSettings;	
+			_telnetSettings		= localData.data.telnetSettings;	
 														
 		}
 		
@@ -105,6 +101,17 @@ package com.simian.profile {
 		
 		public function get aWindowSettings() : Array {
 			return this._aWindowSettings;
+		}
+
+		[Bindable]		
+		public function set telnetSettings(ts:TelnetSettings) : void {
+			this._telnetSettings = ts;
+			localData.data.telnetSettings = ts;
+			writeProfile();			
+		}
+		
+		public function get telnetSettings() : TelnetSettings {
+			return this._telnetSettings;
 		}
 
 

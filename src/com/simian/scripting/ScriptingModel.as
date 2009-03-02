@@ -12,7 +12,6 @@ package com.simian.scripting {
 	
 	public class ScriptingModel {
 
-		
 		public var aAlias : ArrayCollection;
 
 		private var oVariables : Object = new Object();	
@@ -20,7 +19,9 @@ package com.simian.scripting {
 		private var dispatcher : Dispatcher = new Dispatcher();
 
 		// trigger vars
+		[Bindable]
 		public var aTrigger : ArrayCollection ;		
+		
 		public static const aParseType : Array = ['Prompt','Line','Block'];
 
 
@@ -805,6 +806,38 @@ package com.simian.scripting {
 
 			return '';
 		}
+		
+		// delay (x seconds, command)
+		public function disable(aArguments:Array) : String {						
+
+			var command: String = aArguments[0];
+	
+			for each (var trig : Trigger in aTrigger) {
+				if (trig.name == command){
+					trig.bEnabled = false;
+					return '';
+				} 
+			}
+			error_handler('Trigger : "' + command + '" not found to disable');
+			return '';
+		}
+		
+		// delay (x seconds, command)
+		public function enable(aArguments:Array) : String {						
+
+			var command: String = aArguments[0];
+	
+			for each (var trig : Trigger in aTrigger) {
+				if (trig.name == command){
+					trig.bEnabled = true;
+					return '';
+				} 
+			}
+			error_handler('Trigger : "' + command + '" not found to disable');
+			return '';
+		}
+
+		
 
 	}
 	

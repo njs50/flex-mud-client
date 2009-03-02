@@ -11,12 +11,15 @@
 	paddingRight="5"
 	paddingBottom="5"
 	paddingTop="5" 		
-	focusEnd="saveTrigger()"		
+	focusEnd="saveTrigger()"	
+	creationComplete="init()" 	
 >
 
 
   <mx:Script>
   <![CDATA[
+  	import mx.collections.SortField;
+  	import mx.collections.Sort;
   
   	import com.simian.profile.Trigger;
   	import mx.collections.ArrayCollection;
@@ -26,7 +29,50 @@
 				
 		public var editor_trigger : Trigger;
 		
+		public var aGroups : Array;
 		
+		[Bindable]
+		private var acGroups : ArrayCollection = new ArrayCollection();
+		
+		private function init() : void {
+			
+			getGroups();			
+			
+		}
+	
+		// gets distinct groups
+		private function getGroups() : void {
+			
+			trace('-- getting groups');
+			
+			acGroups = new ArrayCollection();			
+			var oGroups : Object = new Object();			
+			for each (var t : Trigger in editor_aTrigger.source) {				
+				if ( !oGroups.hasOwnProperty(t.group) ) {
+					acGroups.addItem(t);
+					oGroups[t.group] = true;	
+				}												
+			}
+
+			// sort alphabetically
+			var oSort : Sort = new Sort();			
+			oSort.fields = [new SortField("group",true)];			
+			acGroups.sort = oSort;			
+			acGroups.refresh();
+			
+			applyFilter();
+		}
+	
+		private function applyFilter() : void {
+			
+			editor_aTrigger.filterFunction = listFilter;
+			editor_aTrigger.refresh();
+			
+		}
+	
+		private function listFilter(t : Trigger) : Boolean {			
+			return ( t.group == groupList.selectedItem.group );			
+		}
 		
 		
 		private function addTrigger() : void {
@@ -58,13 +104,17 @@
 	
 	  			editor_trigger.name = trigger_name.text;
 	  			editor_trigger.trigger = trigger_pattern.text;
+	  			editor_trigger.group = trigger_group.text;
 	  			editor_trigger.command = trigger_command.text; 
 	  			editor_trigger.parse_type = int(trigger_parse_type.selectedValue);
 	  			editor_trigger.bEnabled = trigger_bEnabled.selected;
 	  			triggerList.invalidateList();
   			
   			}
-  		  			 			  			
+  		  	
+  		  	getGroups();  		  	
+  		  	applyFilter();		
+  		  	 			  			
   		}
   		
   		private function selectTrigger() : void {  			
@@ -77,6 +127,7 @@
 	  			trigger_name.text = editor_trigger.name;
 	  			trigger_pattern.text = editor_trigger.trigger;
 	  			trigger_command.text = editor_trigger.command;  
+	  			trigger_group.text = editor_trigger.group;
 	  			trigger_parse_type.selectedValue = editor_trigger.parse_type;	
 	  			trigger_bEnabled.selected = editor_trigger.bEnabled;	  			
 	  			trigger_name.setFocus();		
@@ -87,19 +138,28 @@
   			if (trig.name.length > 0) return trig.name;
   			else return '[unnamed trigger]';
   		}
-	
+
+  		private function getGroup( trig : Trigger) : String {
+  			if (trig.group.length > 0) return trig.group;
+  			else return '[ungrouped]';
+  		}	
+  		
   		
   ]]>  
   </mx:Script>
   
   <mx:HBox width="95%" height="100%">
   
-    <mx:List  id="triggerList" dataProvider="{editor_aTrigger}" height="100%" width="150" change="selectTrigger()" labelFunction="getLabel" />
+	<mx:VBox height="100%" width="150">		
+	  	<mx:ComboBox id="groupList" dataProvider="{acGroups}" labelField="group"  width="150" change="applyFilter()" labelFunction="getGroup" />  
+	    <mx:List  id="triggerList" dataProvider="{editor_aTrigger}" height="100%" width="150" change="selectTrigger()" labelFunction="getLabel"  dataChange="getGroups()" />
+	</mx:VBox>
   
       
  	<mx:VBox height="100%" width="100%">
  	
  		<mx:Grid width="100%">
+
  			<mx:GridRow width="100%">
  				<mx:GridItem>
  					<mx:Label text="Name: "/>
@@ -108,6 +168,16 @@
  					<mx:TextInput id="trigger_name" width="100%"/>
  				</mx:GridItem> 					
  			</mx:GridRow>
+
+ 			<mx:GridRow width="100%">
+ 				<mx:GridItem>
+ 					<mx:Label text="Group: "/>
+ 				</mx:GridItem>
+ 				<mx:GridItem width="100%">
+ 					<mx:TextInput id="trigger_group" width="100%"/>
+ 				</mx:GridItem> 					
+ 			</mx:GridRow>
+ 			
 
  			<mx:GridRow width="100%">
  				<mx:GridItem>
