@@ -13,6 +13,8 @@ package com.simian.mapper {
 		public static const MAPPER_STOP : String = "stopMapperRecording";
 		public static const MAPPER_FIND : String = "findMapLocation";
 		public static const MAPPER_SELECT_ROOM : String = "mapSelectLocation";
+		public static const MAPPER_MOVE_TO_ROOM : String = "mapMoveToRoom";
+		
 		
 		// EVENT DATA				
 		public var room : Room; 	

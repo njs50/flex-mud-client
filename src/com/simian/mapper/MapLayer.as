@@ -29,6 +29,11 @@ package com.simian.mapper
 			// add this room if it isn't already there... 		
 	 		if (! mapSprite.contains(oRoom) ) mapSprite.addChild(oRoom);			
 		}
+		
+		public function removeRoom(oRoom:Room) : void {
+			// remove this room if it exits
+			if ( mapSprite.contains(oRoom) ) mapSprite.removeChild(oRoom);
+		}
 
 		
 		public function setActiveLayer(): void {

@@ -15,6 +15,7 @@
 
   <mx:Script>
   <![CDATA[
+  	import flexlib.scheduling.scheduleClasses.utils.Selection;
   	import mx.binding.utils.ChangeWatcher;
   	
   	import com.simian.mapper.Room;
@@ -32,15 +33,16 @@
   	[Bindable]
   	public var current_room : Room = new Room();
   	
+  	[Bindable]
+  	public var selected_room : Room;
+  	
   	public var bMappingEnabled : Boolean = false;
   
   	public var watcher:ChangeWatcher;
   
  	private function init() : void { 		
+
 		updateToggleLabel();
- 		
- 		mapTabs.selectedIndex = 0;
- 		mapTabs.selectedIndex = 1;
  		
  		watcher = ChangeWatcher.watch(this,"current_room",roomChange);
  		  		
@@ -81,26 +83,31 @@
  		updateToggleLabel();
  	}
  	
- 	private function find() : void {
- 		
+ 	private function find() : void { 		
  		// despatch a mapping start/stop even
     	var mEvent : MapperEvent;       	
 		mEvent = new MapperEvent(MapperEvent.MAPPER_FIND);
-		dispatchEvent(mEvent);
-		
+		dispatchEvent(mEvent);		
  	}
+  
+  
+  	private function deleteSelected() : void {
+  		if (selected_room != null) oMap.deleteRoom(selected_room);
+  	}
+  
   
   ]]>  
   </mx:Script>
 
 	
-	<mx:TabNavigator id="mapTabs" width="100%" height="100%" verticalGap="2" paddingTop="2">
+	<mx:TabNavigator id="mapTabs" width="100%" height="100%" verticalGap="2" paddingTop="2" creationPolicy="all">
 
 		<mx:VBox label="Map" styleName="standardPadding">
 
 			<mx:HBox>		
 				<mx:Button id="toggle_mapper" click="toggle_mapping()" />
-				<mx:Button label="find" click="find()" />	
+				<mx:Button label="find" click="find()" />
+				<mx:Button label="delete" click="deleteSelected()" />	
 			</mx:HBox>
 			
 			<mapper:MapView 

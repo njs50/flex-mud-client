@@ -1,5 +1,6 @@
 package com.simian.scripting {
 	import com.asfusion.mate.events.Dispatcher;
+	import com.simian.mapper.PathEvent;
 	import com.simian.profile.Alias;
 	import com.simian.profile.Trigger;
 	import com.simian.telnet.TelnetEvent;
@@ -14,11 +15,7 @@ package com.simian.scripting {
 		
 		public var aAlias : ArrayCollection;
 
-		private var oVariables : Object = new Object();
-	
-		private var aPath : Array = new Array();
-		private var lastPathStep : String = '';
-		private var aPathBehind : Array = new Array();
+		private var oVariables : Object = new Object();	
 	
 		private var dispatcher : Dispatcher = new Dispatcher();
 
@@ -766,31 +763,38 @@ package com.simian.scripting {
 				}			
 			}
 			
-			this.aPath = aNewPath.reverse();
-			this.lastPathStep = '';
-			this.aPathBehind = new Array();
+        	var pEvent : PathEvent;       	
+			pEvent = new PathEvent(PathEvent.NEW_PATH);        	
+			pEvent.aPath = aNewPath; 			
+			dispatcher.dispatchEvent(pEvent);
 			
 			return '';
 		}
 		
 		// takes a step on a path
 		public function stepPath(aArguments:Array) : String {
-			if (aPath.length){
-				lastPathStep = aPath.pop() as String; 
-				aPathBehind.push(lastPathStep);
-				return lastPathStep;
-			} else return '';			
+
+        	var pEvent : PathEvent;       	
+			pEvent = new PathEvent(PathEvent.STEP);        				 		
+			dispatcher.dispatchEvent(pEvent);			
+			return '';			
 		}
 
 		// undoes the last step
 		public function undoStep(aArguments:Array) : String {			
-			if (aPathBehind.length > 0) {
-				lastPathStep = aPathBehind.pop(); 
-				aPath.push(lastPathStep);
-			}						
-			return '';
+        	var pEvent : PathEvent;       	
+			pEvent = new PathEvent(PathEvent.UNDO_LAST_STEP);        				 		
+			dispatcher.dispatchEvent(pEvent);			
+			return '';			
 		}
-		
+
+		// undoes the last step
+		public function repeatStep(aArguments:Array) : String {			
+        	var pEvent : PathEvent;       	
+			pEvent = new PathEvent(PathEvent.REPEAT_LAST_STEP);        				 		
+			dispatcher.dispatchEvent(pEvent);			
+			return '';			
+		}		
 
 		// delay (x seconds, command)
 		public function delay(aArguments:Array) : String {			

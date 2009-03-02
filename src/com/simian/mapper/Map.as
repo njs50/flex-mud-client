@@ -17,23 +17,49 @@ package com.simian.mapper
 			map_name = _name;				
 		}
 
-		public function find(oRoom : Room) : Room {
+
+		public function deleteRoom(oRoom : Room) : void {
 			
-			for each (var zLayer : Object in oRooms ) {
-			
-				for each (var yLayer : Object in zLayer.oRooms) {
-					
-					for each (var testRoom : Room in yLayer) {
-						
-						if (oRoom.match_room(testRoom)) return testRoom;
-						
-					}
-					
-				} 				
+			// loop through any rooms this one is linked to and remove it as an exit
+			for each (var exit : Exit in oRoom.room_aExits ) {
+				if (exit.room != null) exit.room.removeExit('',oRoom);
 			}
 			
-			return null;
+			// makes sure none of the adjacent rooms have this room as an exit
+			removeExit(oRoom,oRoom.room_x+1,oRoom.room_y,oRoom.room_z);		
+			removeExit(oRoom,oRoom.room_x-1,oRoom.room_y,oRoom.room_z);
+			removeExit(oRoom,oRoom.room_x,oRoom.room_y+1,oRoom.room_z);
+			removeExit(oRoom,oRoom.room_x,oRoom.room_y-1,oRoom.room_z);
+			removeExit(oRoom,oRoom.room_x,oRoom.room_y,oRoom.room_z+1);
+			removeExit(oRoom,oRoom.room_x,oRoom.room_y,oRoom.room_z-1);
 			
+			// find the layer
+			var thisLayer : MapLayer = oRooms[oRoom.room_z];
+			thisLayer.removeRoom(oRoom); 
+									
+			// finally kill the room
+			delete thisLayer.oRooms[oRoom.room_y][oRoom.room_x];
+			
+		} 
+		
+		// if a room exists at this location run it's removeExit
+		private function removeExit(oRoom : Room,x:int,y:int,z:int) : void {			
+			var adjacentRoom : Room = getRoom(x,y,z);			
+			if (adjacentRoom != null) adjacentRoom.removeExit('',oRoom);			
+		}
+
+		
+
+		public function find(oRoom : Room) : Room {
+			// loop through all rooms in this map and look for a match
+			for each (var zLayer : Object in oRooms ) {			
+				for each (var yLayer : Object in zLayer.oRooms) {					
+					for each (var testRoom : Room in yLayer) {						
+						if (oRoom.match_room(testRoom)) return testRoom;						
+					}					
+				} 				
+			}			
+			return null;			
 		}
 		
 

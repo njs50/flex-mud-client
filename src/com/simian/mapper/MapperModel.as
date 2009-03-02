@@ -16,7 +16,7 @@ package com.simian.mapper {
 		public var aMaps : Array;
 		
 		public var selected_room : Room;
-		
+				
 		// private vars
 		private var dispatcher : Dispatcher = new Dispatcher();
 		
@@ -29,6 +29,10 @@ package com.simian.mapper {
 				
 		private var move_direction : String = '';		
 				
+		
+		private var aPath : Array = new Array();
+		private var lastPathStep : String = '';
+		private var aPathBehind : Array = new Array();		
 		
 		
 		
@@ -49,6 +53,40 @@ package com.simian.mapper {
 			dispatcher.dispatchEvent(mEvent);
 			
 		}
+	
+	
+		public function newPath(aNewPath : Array) : void {
+			this.aPath = aNewPath.reverse();
+			this.lastPathStep = '';
+			this.aPathBehind = new Array();
+		}
+		
+	
+		// takes a step on a path
+		public function stepPath() : void {
+			if (aPath.length){
+				lastPathStep = aPath.pop() as String; 
+				aPathBehind.push(lastPathStep);
+				sendCommand(lastPathStep);
+			} else if (verbose) errorMessage('stepper is out of steps to step');	
+		}
+
+		// undoes the last step
+		public function undoStep() : void {			
+			if (aPathBehind.length > 0) {
+				lastPathStep = aPathBehind.pop(); 
+				aPath.push(lastPathStep);
+				if (verbose) errorMessage('undoing step');
+			} else if (verbose) errorMessage('no steps to undo');								
+		}	
+		
+		public function repeatPathStep() : void{
+			if (lastPathStep != ''){ 
+				sendCommand(lastPathStep);
+				
+			} else if (verbose) errorMessage('no step to repeat');
+		}
+	
 	
 		// start mapper
 		public function mapperStart() : void {
@@ -73,17 +111,36 @@ package com.simian.mapper {
 			selected_room.bSelected = true;
 			selected_room.redraw();		
 			
-			errorMessage('shortest path is' + shortestPath(current_room,selected_room));		
-			
 		}
 		
+		
+		public function moveToRoom(room : Room) : void {
+			// trace('someone clicked ::: ' + room.room_name);
+			
+			if (selected_room != null) {
+				
+				var aNewPath : Array = shortestPath(current_room,selected_room);				
+				
+				if (shortestPath != null) {
+					
+					errorMessage('shortest path is ' + aNewPath.toString());
+					newPath(aNewPath);
+					stepPath();					
+					
+				} else if (verbose) errorMessage('no path to selected room available');
+				
+			}
+
+		}		
+		
+		
 		// djikstras shortest path algorithm
-		public function shortestPath (startRoom : Room, endRoom : Room) : String {
+		public function shortestPath (startRoom : Room, endRoom : Room) : Array {
 			
 			var aFinal : Array = new Array();
 			var aAdjacent : Array = new Array();
 									
-			var current_node : PathNode = new PathNode(0,startRoom,''); 			
+			var current_node : PathNode = new PathNode(0,startRoom,new Array()); 			
 			
 			while ( !nodeArrayContainsRoom(aFinal,endRoom) ) {
 				
@@ -92,7 +149,11 @@ package com.simian.mapper {
 				
 				for each (var oExit : Exit in current_node.room.room_aExits) {				
 					// only add this if the room isn't already in aFinal (and it's actually an exit, not just a placeholder)				
-					if ( oExit.room != null && !nodeArrayContainsRoom(aFinal,oExit.room) ) aAdjacent.push( new PathNode( current_node.distance + oExit.room.travel_cost, oExit.room ,current_node.path + ' ' + oExit.direction ) );				
+					if ( oExit.room != null && !nodeArrayContainsRoom(aFinal,oExit.room) ){ 
+						var aNewPath : Array = current_node.aPath.slice(); 
+						aNewPath.push(oExit.direction);
+						aAdjacent.push( new PathNode( current_node.distance + oExit.room.travel_cost, oExit.room , aNewPath ) );
+					}				
 				}
 				
 				// if there are still nodes to check continue. otherwise abandon ship
@@ -101,12 +162,12 @@ package com.simian.mapper {
 					aAdjacent = aAdjacent.sortOn( "distance", Array.NUMERIC | Array.DESCENDING );				
 					current_node = aAdjacent.pop();						
 					// check if this is the room we are looking for!
-					if (current_node.room == endRoom) return current_node.path;								
+					if (current_node.room == endRoom) return current_node.aPath;								
 				} else break;			
 			} 
 						
 			errorMessage('Target room appears unreachable from your current location');
-			return '';
+			return null;
 			
 		}
 		
@@ -122,49 +183,48 @@ package com.simian.mapper {
 		// finds the users position in the event they've become desync'd or just logged in...
 		public function findMe() : void {
 			
+			// reset the move direction
 			move_direction = '';
 			
-			var searchMap : Map;
+			for each ( var searchMap : Map in aMaps ) {
+						
+				var thisRoom : Room = searchMap.find(current_room);
+				
+				if (thisRoom != null) {
+					
+					oMap = searchMap;
+					
+			 		// deselect the current room
+			 		current_room.bCurrentroom = false;
+			 		current_room.redraw();			
+					
+					current_room = thisRoom;
+					current_layer = oMap.oRooms[current_room.room_z];
+					lastRoom = current_room;
+					current_x = thisRoom.room_x;
+					current_y = thisRoom.room_y;
+					current_z = thisRoom.room_z;
+					
+					// select the new current room
+			 		current_room.bCurrentroom = true;
+			 		current_room.redraw();
+	
+					// despatch a room change event to let the viewer know we have moved
+			    	var mEvent : MapperEvent;       	
+					mEvent = new MapperEvent(MapperEvent.CHANGE_ROOM);        				
+					dispatcher.dispatchEvent(mEvent);					
+					
+					// our work here is done, we are found...
+					return;
+				
+				}
+			}			 
 			
-			searchMap = oMap;
 			
-			var thisRoom : Room = searchMap.find(current_room);
-			
-			if (thisRoom != null) {
-				
-				oMap = searchMap;
-				
-				
-				oMap == oMap;
-				
-		 		// deselect the current room
-		 		current_room.bCurrentroom = false;
-		 		current_room.redraw();			
-				
-				current_room = thisRoom;
-				current_layer = oMap.oRooms[current_room.room_z];
-				lastRoom = current_room;
-				current_x = thisRoom.room_x;
-				current_y = thisRoom.room_y;
-				current_z = thisRoom.room_z;
-				
-				// select the new current room
-		 		current_room.bCurrentroom = true;
-		 		current_room.redraw();
-
-				// despatch a room change event to let the viewer know we have moved
-		    	var mEvent : MapperEvent;       	
-				mEvent = new MapperEvent(MapperEvent.CHANGE_ROOM);        				
-				dispatcher.dispatchEvent(mEvent);
-				
-				
-				// our work here is done, we are found...
-				return;
-				
-			} else {
-				errorMessage('Your current room could not be found in the map (you might try looking around)');
-				bMappingEnabled = false;
-			}
+			// if we've got this far then we didn't find the room in any of the maps
+			errorMessage('Your current room could not be found in the map (you might try looking around)');
+			bMappingEnabled = false;
+		
 			
 		}
 
@@ -274,10 +334,6 @@ package com.simian.mapper {
 			 		current_room.bCurrentroom = true;
 			 		current_room.redraw();
 
-					// despatch a room change event to let the viewer know we have moved
-			    	var mEvent : MapperEvent;       	
-					mEvent = new MapperEvent(MapperEvent.CHANGE_ROOM);        				
-					dispatcher.dispatchEvent(mEvent);
 				}
 
 								
@@ -310,6 +366,18 @@ package com.simian.mapper {
 			telnetEvent.data = 'Mapper: ' + value;			
 			dispatcher.dispatchEvent(telnetEvent);
 		}	
+
+		
+		// sends a command to the telnet client
+		public function sendCommand(value:String) : void {								
+        	var telnetEvent : TelnetEvent;       	
+			telnetEvent = new TelnetEvent(TelnetEvent.SEND_TRIGGER_DATA);        	
+			telnetEvent.data =  value;			
+			dispatcher.dispatchEvent(telnetEvent);
+		}	
+
+		
+		
 
 
 		private function reverseDirection(direction:String) : String {

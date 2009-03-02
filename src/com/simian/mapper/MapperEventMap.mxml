@@ -16,6 +16,7 @@
 	<Injectors target="{MapperWindow}">		
 		<PropertyInjector targetKey="oMap" source="{MapperModel}" sourceKey="oMap" />			
 		<PropertyInjector targetKey="current_room" source="{MapperModel}" sourceKey="current_room" />
+		<PropertyInjector targetKey="selected_room" source="{MapperModel}" sourceKey="selected_room" />
 		<PropertyInjector targetKey="bMappingEnabled" source="{MapperModel}" sourceKey="bMappingEnabled" />
 	</Injectors>	
 	
@@ -31,11 +32,30 @@
 		<MethodInvoker generator="{MapperModel}" method="findMe" />
 	</EventHandlers>	
 	
+
 	<EventHandlers type="{MapperEvent.MAPPER_SELECT_ROOM}">		
 		<MethodInvoker generator="{MapperModel}" method="selectRoom" arguments="{event.room}" />
 	</EventHandlers>	
 	
+	<EventHandlers type="{MapperEvent.MAPPER_MOVE_TO_ROOM}">		
+		<MethodInvoker generator="{MapperModel}" method="moveToRoom" arguments="{event.room}" />
+	</EventHandlers>	
 	
+	<EventHandlers type="{PathEvent.NEW_PATH}">		
+		<MethodInvoker generator="{MapperModel}" method="newPath" arguments="{event.aPath}" />
+	</EventHandlers>	
+
+	<EventHandlers type="{PathEvent.REPEAT_LAST_STEP}">		
+		<MethodInvoker generator="{MapperModel}" method="repeatPathStep" />
+	</EventHandlers>	
+
+	<EventHandlers type="{PathEvent.STEP}">		
+		<MethodInvoker generator="{MapperModel}" method="stepPath" />
+	</EventHandlers>	
+	
+	<EventHandlers type="{PathEvent.UNDO_LAST_STEP}">		
+		<MethodInvoker generator="{MapperModel}" method="undoStep" />
+	</EventHandlers>		
 	
 
 	<EventHandlers type="{TelnetEvent.PARSE_LINE_DATA}">		

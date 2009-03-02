@@ -35,6 +35,10 @@ package com.simian.mapper
 		public function Room(_name:String = '',exits_string:String = '',_line1:String = '',_line2:String = '',_line3:String = '', _x : int = 0, _y : int = 0, _z:int = 0, _aExits:Array = null)
 		{
 
+			// set default properties.
+			this.doubleClickEnabled = true;
+			this.mouseChildren = false;
+
 			room_name = _name;
 			room_line1 = _line1;
 			room_line2 = _line2;
@@ -58,6 +62,7 @@ package com.simian.mapper
 			
 			// add an event handler for if someone clicks on us
 			addEventListener(MouseEvent.CLICK,clickHandler);
+			addEventListener(MouseEvent.DOUBLE_CLICK,doubleclickHandler);
 			
 			// draw us a sprite
 			redraw();
@@ -75,6 +80,15 @@ package com.simian.mapper
 			
 		}
 
+		public function doubleclickHandler(event:Event) : void {
+
+			// broadcast that the user has selected this room        	
+        	var mEvent : MapperEvent;       	
+			mEvent = new MapperEvent(MapperEvent.MAPPER_MOVE_TO_ROOM);        			
+			mEvent.room = this;
+			dispatcher.dispatchEvent(mEvent);			
+			
+		}
 
 
 		public function redraw() : void	{
@@ -114,6 +128,7 @@ package com.simian.mapper
 			for each (var exit : Exit in this.room_aExits ) {
 				
 				var join_gap : int = 0;
+				var startPoint : int;
 				
 				// if this exit hasn't been linked to a room yet leave a gap
 				if (exit.room == null) join_gap = 2;
@@ -141,11 +156,23 @@ package com.simian.mapper
 					break;
 	
 					case 'up':
-						
+						startPoint = join_size + 5;
+						if (exit.room != null) this.graphics.beginFill(0x000000);
+						this.graphics.moveTo(startPoint,startPoint - 3);
+						this.graphics.lineTo(startPoint + 3, startPoint + 1);
+						this.graphics.lineTo(startPoint - 3, startPoint + 1);
+						this.graphics.lineTo(startPoint, startPoint - 3);
+						if (exit.room != null) this.graphics.endFill();
 					break;
 	
 					case 'down':
-						
+						startPoint = sprite_area - join_size - 5;
+						if (exit.room != null) this.graphics.beginFill(0x000000);
+						this.graphics.moveTo(startPoint,startPoint + 3);
+						this.graphics.lineTo(startPoint + 3, startPoint - 1);
+						this.graphics.lineTo(startPoint - 3, startPoint - 1);
+						this.graphics.lineTo(startPoint, startPoint + 3);	
+						if (exit.room != null) this.graphics.endFill();					
 					break;
 				
 				}
@@ -198,6 +225,29 @@ package com.simian.mapper
 			}
 			
 		}
+		
+		// sets the exit back to being a stub. 
+		public function removeExit(direction : String = '', to_room : Room = null) : void {
+			
+			var aNewExits : Array = new Array();
+			
+			for each (var exit : Exit in this.room_aExits ) {
+				if (direction != '' && exit.direction == direction) {	
+					exit.room = null;
+					aNewExits.push(exit);
+				} else if ( to_room != null && exit.room == to_room ) {
+					exit.room = null;
+					aNewExits.push(exit);
+				} else {
+					aNewExits.push(exit);
+				}
+			}
+						
+			this.room_aExits = aNewExits;
+			this.redraw();
+
+		}
+		
 
 	}
 }

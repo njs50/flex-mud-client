@@ -20,12 +20,14 @@ package com.simian.mapper
 		[Bindable]
 		public var current_room : Room;
 
+		public var last_room : Room;
+
 
 		public function MapView()
 		{
 			this.horizontalScrollPolicy = ScrollPolicy.AUTO;
 			this.verticalScrollPolicy = ScrollPolicy.AUTO;
-			this.liveScrolling = false;
+			this.liveScrolling = false;			
 		}
 		
         override protected function createChildren():void{
@@ -36,9 +38,7 @@ package com.simian.mapper
             addChild(mapSprite);    
             mapSprite.mask = this.maskShape;
                     
-
-		 	this.addEventListener(ScrollEvent.SCROLL, onScroll);   
-		 	         
+		 	this.addEventListener(ScrollEvent.SCROLL, onScroll);   		 	         
          	this.addEventListener(Event.RESIZE, resizeHandler);
             
         }		
@@ -79,8 +79,13 @@ package com.simian.mapper
 		}
 
 
-		public function changeRoom() : void {			
+		public function changeRoom() : void {		
+			// if the layer has changed update what we can see
+			if (last_room != null) {			
+				if (current_room.room_z != last_room.room_z) changeLayer();				
+			}			
 			centerMap();			
+			last_room = current_room;						
 		}
 
 
@@ -133,8 +138,6 @@ package com.simian.mapper
 		// centers the map on the current room
 		private function centerMap() : void {
 			
-			trace('centering map');
-			
 			// check that we have actually loaded a map, if not load the current one
 			if (current_layer_sprite == null) changeLayer();
 			
@@ -149,8 +152,6 @@ package com.simian.mapper
 			if(	current_y < (this.internal_height * 0.25) || current_y > (this.internal_height * 0.75) ) mapSprite.y = (this.internal_height / 2) - current_room.y ;						  
 			
 			resizeScrollBars();
-			
-			trace('current x,y (' + current_x.toString() + ',' + current_y.toString() + ')');
 					
 		}
 
