@@ -18,13 +18,15 @@ package com.simian.profile {
 		// array of aliases						
 		private var _aAlias : ArrayCollection;
 		private var _aTrigger : ArrayCollection;
+		private var _aTriggerGroup : ArrayCollection;
 		private var _aWindowSettings	: Array;		
 		private var _telnetSettings : TelnetSettings
+		
 		
 		// local shared object data
 		private var localData : SharedObject;
 		
-		private static const PROFILE_VERSION : String = "0.000005i";
+		private static const PROFILE_VERSION : String = "0.000006d";
 		
 		private var dispatcher : Dispatcher = new Dispatcher();
 
@@ -34,6 +36,7 @@ package com.simian.profile {
 								
 			_aAlias 	= new ArrayCollection();	
 			_aTrigger 	= new ArrayCollection();				
+			_aTriggerGroup 	= new ArrayCollection();
 				
 			localData = SharedObject.getLocal('telnetData');
 			
@@ -47,15 +50,17 @@ package com.simian.profile {
 			if (localData.size == 0) {
 				localData.data.aAlias 			= new Array();
 				localData.data.aTrigger 		= new Array();
+				localData.data.aTriggerGroup	= new Array();				
 				localData.data.aWindowSettings 	= new Array();
 				localData.data.profileVersion 	= PROFILE_VERSION;
 				localData.data.telnetSettings	= new TelnetSettings(); 				
 			}
 			
-			_aAlias.source 		= localData.data.aAlias;			
-			_aTrigger.source 	= localData.data.aTrigger;			
-			_aWindowSettings 	= localData.data.aWindowSettings;
-			_telnetSettings		= localData.data.telnetSettings;	
+			_aAlias.source 			= localData.data.aAlias;			
+			_aTrigger.source 		= localData.data.aTrigger;
+			_aTriggerGroup.source 	= localData.data.aTriggerGroup;			
+			_aWindowSettings 		= localData.data.aWindowSettings;
+			_telnetSettings			= localData.data.telnetSettings;	
 														
 		}
 		
@@ -88,6 +93,20 @@ package com.simian.profile {
 		
 		public function get aTrigger() : ArrayCollection {
 			return this._aTrigger
+		}
+		
+		[Bindable]		
+		public function set aTriggerGroup(ac:ArrayCollection) : void {
+			this._aTriggerGroup = ac;
+			localData.data.aTriggerGroup = ac.source;
+			writeProfile();			
+		}
+		
+		public function get aTriggerGroup() : ArrayCollection {
+  			if (_aTriggerGroup.length == 0 || _aTriggerGroup.getItemAt(0).data != null) {	  			
+  				_aTriggerGroup.addItemAt({name:"No Group", data:null},0);
+  			}
+			return this._aTriggerGroup
 		}
 		
 

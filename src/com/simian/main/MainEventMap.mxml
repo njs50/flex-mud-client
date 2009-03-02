@@ -51,7 +51,8 @@
 	</Injectors>
 	
 	<Injectors target="{TriggerEditor}">
-		<PropertyInjector targetKey="editor_aTrigger" source="{UserModel}" sourceKey="aTrigger" />
+		<PropertyInjector targetKey="aTrigger" source="{UserModel}" sourceKey="aTrigger" />
+		<PropertyInjector targetKey="aTriggerGroup" source="{UserModel}" sourceKey="aTriggerGroup" />
 	</Injectors>
 
 	
