@@ -1,5 +1,6 @@
 package com.simian.scripting {
 	import com.asfusion.mate.events.Dispatcher;
+	import com.simian.mapper.MovementEvent;
 	import com.simian.mapper.PathEvent;
 	import com.simian.profile.Alias;
 	import com.simian.profile.Trigger;
@@ -100,7 +101,7 @@ package com.simian.scripting {
 					
 					// not a native command so check aliases
 					for each (var a:Alias in aAlias) {				
-						if (a.trigger == oCommand[1] ){
+						if (a.bEnabled && a.trigger == oCommand[1] ){
 							bMatch = true;											
 							command = a.command;
 							// loop over found tokens (skip 0 as it is the command)
@@ -336,7 +337,7 @@ package com.simian.scripting {
 			
 			// loop through aliases and check for matches
 			for each (var a:Alias in aAlias) {				
-				if (test_cmd.search('^' + a.trigger + ' ') == 0){
+				if (a.bEnabled && test_cmd.search('^' + a.trigger + ' ') == 0){
 					// match found. expand it if required
 					var aTokens : Array = test_cmd.split(' ');					
 					cmd = a.command;
@@ -795,7 +796,41 @@ package com.simian.scripting {
 			pEvent = new PathEvent(PathEvent.REPEAT_LAST_STEP);        				 		
 			dispatcher.dispatchEvent(pEvent);			
 			return '';			
+		}
+		
+		// sets us up for a movement to an adjacent room
+		public function moveDirection(aArguments:Array) : String {			
+        	var pEvent : MovementEvent;       	
+			pEvent = new MovementEvent(MovementEvent.MOVE_DIRECTION);        				 		
+			pEvent.direction = aArguments[0];
+			dispatcher.dispatchEvent(pEvent);					
+			return '';			
+		}
+		
+		// sets us up for a teleport to a new location
+		public function moveLocation(aArguments:Array) : String {			
+        	var pEvent : MovementEvent;       	
+			pEvent = new MovementEvent(MovementEvent.MOVE_LOCATION);        				 		
+			pEvent.x = parseInt(aArguments[0]);
+			pEvent.y = parseInt(aArguments[1]);
+			pEvent.z = parseInt(aArguments[2]);
+			dispatcher.dispatchEvent(pEvent);					
+			return '';			
 		}		
+		
+
+		// sets us up for a teleport to a new location (relative to this one)
+		public function moveRelativeLocation(aArguments:Array) : String {			
+        	var pEvent : MovementEvent;       	
+			pEvent = new MovementEvent(MovementEvent.MOVE_RELATIVE_LOCATION);        				 		
+			pEvent.x = parseInt(aArguments[0]);
+			pEvent.y = parseInt(aArguments[1]);
+			pEvent.z = parseInt(aArguments[2]);
+			dispatcher.dispatchEvent(pEvent);					
+			return '';			
+		}		
+
+				
 
 		// delay (x seconds, command)
 		public function delay(aArguments:Array) : String {			
@@ -807,11 +842,9 @@ package com.simian.scripting {
 			return '';
 		}
 		
-		// delay (x seconds, command)
-		public function disable(aArguments:Array) : String {						
-
-			var command: String = aArguments[0];
-	
+		
+		public function disableTrigger(aArguments:Array) : String {						
+			var command: String = aArguments[0];	
 			for each (var trig : Trigger in aTrigger) {
 				if (trig.name == command){
 					trig.bEnabled = false;
@@ -822,11 +855,9 @@ package com.simian.scripting {
 			return '';
 		}
 		
-		// delay (x seconds, command)
-		public function enable(aArguments:Array) : String {						
-
-			var command: String = aArguments[0];
-	
+		
+		public function enableTrigger(aArguments:Array) : String {						
+			var command: String = aArguments[0];	
 			for each (var trig : Trigger in aTrigger) {
 				if (trig.name == command){
 					trig.bEnabled = true;
@@ -836,6 +867,66 @@ package com.simian.scripting {
 			error_handler('Trigger : "' + command + '" not found to disable');
 			return '';
 		}
+
+		
+		public function disableAlias(aArguments:Array) : String {						
+			var command: String = aArguments[0];	
+			for each (var alias : Alias in aAlias) {
+				if (alias.trigger == command){
+					alias.bEnabled = false;
+					return '';
+				} 
+			}
+			error_handler('Alias : "' + command + '" not found to disable');
+			return '';
+		}
+		
+		
+		public function enableAlias(aArguments:Array) : String {						
+			var command: String = aArguments[0];	
+			for each (var alias : Alias in aAlias) {
+				if (alias.trigger == command){
+					alias.bEnabled = true;
+					return '';
+				} 
+			}
+			error_handler('Alias : "' + command + '" not found to disable');
+			return '';
+		}
+
+
+		
+		public function disableGroup(aArguments:Array) : String {						
+			var groupName: String = aArguments[0];	
+			for each (var alias : Alias in aAlias.source) {
+				if (alias.triggerGroup != null && alias.triggerGroup.name == groupName){
+					alias.bEnabled = false;					
+				} 
+			}
+			for each (var trig : Trigger in aTrigger.source) {
+				if (trig.triggerGroup != null && trig.triggerGroup.name == groupName){
+					trig.bEnabled = false;					
+				} 
+			}			
+			return '';
+		}
+		
+		
+		public function enableGroup(aArguments:Array) : String {						
+			var groupName: String = aArguments[0];
+			for each (var alias : Alias in aAlias.source) {
+				if (alias.triggerGroup != null && alias.triggerGroup.name == groupName){
+					alias.bEnabled = true;					
+				} 
+			}
+			for each (var trig : Trigger in aTrigger.source) {
+				if (trig.triggerGroup != null && trig.triggerGroup.name == groupName){
+					trig.bEnabled = true;					
+				} 
+			}			
+			return '';
+		}
+
 
 		
 

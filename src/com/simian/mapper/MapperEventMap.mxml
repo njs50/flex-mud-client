@@ -32,6 +32,18 @@
 		<MethodInvoker generator="{MapperModel}" method="findMe" />
 	</EventHandlers>	
 	
+	<EventHandlers type="{MovementEvent.MOVE_DIRECTION}" debug="true">
+		<MethodInvoker generator="{MapperModel}" method="nextMoveDirection" arguments="{event.direction}" />
+	</EventHandlers>
+
+	<EventHandlers type="{MovementEvent.MOVE_LOCATION}">
+		<MethodInvoker generator="{MapperModel}" method="nextMoveLocation" arguments="{[event.x,event.y,event.z]}" />
+	</EventHandlers>
+
+	<EventHandlers type="{MovementEvent.MOVE_RELATIVE_LOCATION}">
+		<MethodInvoker generator="{MapperModel}" method="nextMoveRelativeLocation" arguments="{[event.x,event.y,event.z]}" />
+	</EventHandlers>
+
 
 	<EventHandlers type="{MapperEvent.MAPPER_SELECT_ROOM}">		
 		<MethodInvoker generator="{MapperModel}" method="selectRoom" arguments="{event.room}" />

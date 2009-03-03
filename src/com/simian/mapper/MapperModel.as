@@ -245,8 +245,8 @@ package com.simian.mapper {
 						move_direction = 'Error';
 					}
 				} else {
-					// don't want it matching 'You stand up.'
-					if (oExitCheck[1].toLowerCase() != 'stand'){
+					// don't want it matching 'You stand up.' or 'You wake up.'
+					if (oExitCheck[1].toLowerCase() != 'stand' && oExitCheck[1].toLowerCase() != 'wake'){
 						move_direction = oExitCheck[2];	
 						move(move_direction);
 					}
@@ -256,8 +256,29 @@ package com.simian.mapper {
 			}
 			
 		} 
+
 		
+		public function nextMoveDirection(direction:String) : void {			
+			move_direction = direction;
+			move(direction);
+			if (verbose) errorMessage('expecting move : ' + move_direction );			
+		}
 		
+		public function nextMoveLocation(_x : int, _y : int, _z : int) : void {			
+			move_direction = 'teleport';
+			current_x = _x;
+			current_y = _y;
+			current_z = _z;			
+			if (verbose) errorMessage('teleporting : ' + move_direction + ' (' + current_x + ',' + current_y + ',' + current_z + ')' );
+		}
+
+		public function nextMoveRelativeLocation(_x : int, _y : int, _z : int) : void {			
+			move_direction = 'teleport';
+			current_x += _x;
+			current_y += _y;
+			current_z += _z;			
+			if (verbose) errorMessage('teleporting : ' + move_direction + ' (' + current_x + ',' + current_y + ',' + current_z + ')' );
+		}		
 
 		
 		// scans a block of text for room info
