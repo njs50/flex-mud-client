@@ -25,18 +25,16 @@
   	import com.simian.profile.Trigger;
   	import mx.collections.ArrayCollection;
 
-		[Bindable]
-		public var aTrigger : ArrayCollection = new ArrayCollection(); 
+	[Bindable]
+	public var aTrigger : ArrayCollection = new ArrayCollection(); 
+	
+	[Bindable]
+	public var aTriggerGroup : ArrayCollection = new ArrayCollection();		
+			
+	public var editor_trigger : Trigger;
 		
-		[Bindable]
-		public var aTriggerGroup : ArrayCollection = new ArrayCollection();		
-				
-		public var editor_trigger : Trigger;
+
 		
-		public var aGroups : Array;
-		
-		[Bindable]
-		private var acGroups : ArrayCollection = new ArrayCollection();
 		
 		private function init() : void {
 			applyFilter();
