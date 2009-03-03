@@ -8,8 +8,27 @@
 	This client is currently proxying to the actual <b>live</b> version of The Forrests Edge (MUD). Please play nice!
 </p>
 
+
 <p>
 	Project Page : <a href="http://wiki.github.com/njs50/flex-mud-client">http://wiki.github.com/njs50/flex-mud-client</a>
+</p>
+
+<h2>Mapping</h2>
+<p>
+
+You need to set <b>opt Room.info 1</b> for mapping to work (yep, it's hardcoded for tfe currently)!</p>
+
+<p>
+Functionality is still very basic!<br>
+
+to move via the map you need to have a trigger setup to call the /stepPath() function whenever you move.<br>
+/undoStep() and /repeatStep() could be handy if your movement is interrupted.<br>
+
+If you can't exit via normal directions you may need to use /moveDirection('north') to map the move<br>
+alternativly if it's a non adjacent room you can use /moveLocation(x,y,z) to move to a specific (x,y,z)<br>
+or you can use /moveRelativeLocation(x1,y2,z3) to move to (x+x1,y+y1,z+z1) i.e relative to your current loc.<br>
+
+
 </p>
 
 <h2>Regexp Reminder</h2>

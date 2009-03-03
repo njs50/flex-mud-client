@@ -241,14 +241,16 @@ package com.simian.mapper {
 				
 				if (move_direction.length != 0){
 					if (move_direction != 'Error') {
-						errorMessage('Detected move ' + oExitCheck[2] + ' while we were still processing a move ' + move_direction );
-						move_direction = 'Error';
+						if( this.bMappingEnabled) {
+							errorMessage('Detected move ' + oExitCheck[2] + ' while we were still processing a move ' + move_direction );
+							move_direction = 'Error';
+						}
 					}
 				} else {
 					// don't want it matching 'You stand up.' or 'You wake up.'
 					if (oExitCheck[1].toLowerCase() != 'stand' && oExitCheck[1].toLowerCase() != 'wake'){
 						move_direction = oExitCheck[2];	
-						move(move_direction);
+						move(move_direction);																		
 					}
 				}
 				
@@ -312,7 +314,8 @@ package com.simian.mapper {
 				// if the mapper is in an error state do nothing (but taunt the user for fun) 
 				else if ( move_direction == 'Error' ) {
 					errorMessage('Mapping currently suspended due to error');
-				
+					// attempt to recover from the error if we are not mapping
+										
 				// if we have a pending move action then lets add this room to the map.
 				} else if ( move_direction != '') {
 										
@@ -334,7 +337,10 @@ package com.simian.mapper {
 				} else {
 					// check the detected room vs the current room
 					// to see if they've changed rooms without moving!
-					if ( ! newRoom.match_room(current_room) ) errorMessage('room change detected but no move direction was noticed!' );
+					if ( ! newRoom.match_room(current_room) ){
+						errorMessage('room change detected but no move direction was noticed!' );
+						
+					} 
 						 
 				} 
 

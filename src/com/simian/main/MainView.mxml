@@ -10,6 +10,7 @@
 	
 	<mx:Script>
 		<![CDATA[
+			import mx.core.Application;
 			import com.simian.profile.ProfileEvent;
 			import flexlib.mdi.containers.MDIWindow;
 					
@@ -114,6 +115,9 @@
 				var telnetConnectEvent : TelnetConnectEvent = new TelnetConnectEvent(TelnetConnectEvent.CONNECT);		
 				telnetConnectEvent.serverURL = ExternalInterface.call("window.location.hostname.toString");
 				telnetConnectEvent.portNumber = 4000;
+				
+				if (Application.application.parameters.hasOwnProperty('port')) telnetConnectEvent.portNumber = parseInt(Application.application.parameters.port);
+				
 				dispatchEvent(telnetConnectEvent);																	
 			}
 		
