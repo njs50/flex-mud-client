@@ -18,16 +18,16 @@
 
   <mx:Script>
   <![CDATA[
-  	import com.simian.profile.TriggerGroup;
-  	import mx.collections.SortField;
-  	import mx.collections.Sort;
-  
-  	import com.simian.profile.Trigger;
-  	import mx.collections.ArrayCollection;
-
+	  	import com.simian.profile.TriggerGroup;
+	  	import mx.collections.SortField;
+	  	import mx.collections.Sort;
+	  
+	  	import com.simian.profile.Trigger;
+	  	import mx.collections.ArrayCollection;
+	
 		[Bindable]
 		public var aTrigger : ArrayCollection = new ArrayCollection(); 
-
+	
 		[Bindable]
 		public var aTriggerClone : ArrayCollection = new ArrayCollection(); 
 		
@@ -35,11 +35,6 @@
 		public var aTriggerGroup : ArrayCollection = new ArrayCollection();		
 				
 		public var editor_trigger : Trigger;
-		
-		public var aGroups : Array;
-		
-		[Bindable]
-		private var acGroups : ArrayCollection = new ArrayCollection();
 		
 		private function init() : void {
 			aTriggerClone.source = aTrigger.source;

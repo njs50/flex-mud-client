@@ -26,7 +26,7 @@ package com.simian.profile {
 		// local shared object data
 		private var localData : SharedObject;
 		
-		private static const PROFILE_VERSION : String = "0.000006e";
+		private static const PROFILE_VERSION : String = "0.000006f";
 		
 		private var dispatcher : Dispatcher = new Dispatcher();
 
@@ -105,10 +105,10 @@ package com.simian.profile {
 		}
 		
 		public function get aTriggerGroup() : ArrayCollection {
-  			if (_aTriggerGroup.length == 0 || _aTriggerGroup.getItemAt(0).data != null) {	  			
-  				_aTriggerGroup.addItemAt({name:"No Group", data:null},0);
+  			if (this._aTriggerGroup.length == 0 || !this._aTriggerGroup.getItemAt(0).hasOwnProperty('data') ) {	  			
+  				this._aTriggerGroup.addItemAt({name:"No Group", data:null},0);
   			}
-			return this._aTriggerGroup
+			return this._aTriggerGroup;
 		}
 		
 
@@ -198,6 +198,11 @@ package com.simian.profile {
         	// send event to close all windows
 			var mdiEvent : WindowEvent = new WindowEvent(WindowEvent.CLOSE_WINDOWS);							
 			dispatcher.dispatchEvent(mdiEvent);	  
+
+        	if (configObj.hasOwnProperty('aTriggerGroup') && configObj.aTrigger) {        		
+        		// because these need to match existing objects we can't rejig them         		
+        		aTriggerGroup = new ArrayCollection(configObj.aTriggerGroup.source);        		
+        	}
 						
         	if (configObj.hasOwnProperty('aWindowSettings') && configObj.aWindowSettings)
         		aWindowSettings = importArray(configObj.aWindowSettings,MDIWindowSettings);
@@ -207,6 +212,7 @@ package com.simian.profile {
         	
         	if (configObj.hasOwnProperty('aTrigger') && configObj.aTrigger)
         		aTrigger = new ArrayCollection(importArray(configObj.aTrigger.source,Trigger));
+        	
         	
         	if (configObj.hasOwnProperty('telnetSettings') && configObj.telnetSettings) {
         		telnetSettings = importObject(configObj.telnetSettings, TelnetSettings) as TelnetSettings;
