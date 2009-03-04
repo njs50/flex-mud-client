@@ -27,6 +27,9 @@
 
 		[Bindable]
 		public var aTrigger : ArrayCollection = new ArrayCollection(); 
+
+		[Bindable]
+		public var aTriggerClone : ArrayCollection = new ArrayCollection(); 
 		
 		[Bindable]
 		public var aTriggerGroup : ArrayCollection = new ArrayCollection();		
@@ -39,14 +42,15 @@
 		private var acGroups : ArrayCollection = new ArrayCollection();
 		
 		private function init() : void {
+			aTriggerClone.source = aTrigger.source;
 			applyFilter();
 		}
 	
 	
 		private function applyFilter() : void {
 			
-			aTrigger.filterFunction = listFilter;
-			aTrigger.refresh();
+			aTriggerClone.filterFunction = listFilter;
+			aTriggerClone.refresh();
 			
 		}
 	
@@ -66,14 +70,14 @@
 			applyFilter();
 			
 			var newItem : Trigger = new Trigger();
-			aTrigger.addItem(newItem);
-			triggerList.selectedIndex = aTrigger.length - 1;
+			aTriggerClone.addItem(newItem);
+			triggerList.selectedIndex = aTriggerClone.length - 1;
 			selectTrigger();			
 		} 
   		
   		private function removeTrigger() : void {
   			if (triggerList.selectedIndex >= 0){
-  				aTrigger.removeItemAt(triggerList.selectedIndex);  				
+  				aTriggerClone.removeItemAt(triggerList.selectedIndex);  				
   			} 
   		}
   		
@@ -88,8 +92,8 @@
 				groupList.selectedIndex = 0;
 				applyFilter();  				
   				editor_trigger = new Trigger();
-				aTrigger.addItem(editor_trigger);
-				triggerList.selectedIndex = aTrigger.length - 1;
+				aTriggerClone.addItem(editor_trigger);
+				triggerList.selectedIndex = aTriggerClone.length - 1;
   			}  
 
   			editor_trigger.name = trigger_name.text;
@@ -137,7 +141,7 @@
   
 	<mx:VBox height="100%" width="150">		
 	  	<mx:ComboBox id="groupList" dataProvider="{aTriggerGroup}" labelField="name"  width="150" change="applyFilter()" />  
-	    <mx:List  id="triggerList" dataProvider="{aTrigger}" height="100%" width="150" change="selectTrigger()" />
+	    <mx:List  id="triggerList" dataProvider="{aTriggerClone}" height="100%" width="150" change="selectTrigger()" />
 	</mx:VBox>
   
       

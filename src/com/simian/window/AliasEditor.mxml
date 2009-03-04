@@ -22,8 +22,12 @@
   	import com.simian.profile.Alias;
   	import mx.collections.ArrayCollection;
 
+
 		[Bindable]
 		public var aAlias : ArrayCollection = new ArrayCollection(); 
+
+		[Bindable]
+		public var aAliasClone : ArrayCollection = new ArrayCollection(); 
 		
 		[Bindable]
 		public var aTriggerGroup : ArrayCollection = new ArrayCollection();
@@ -32,6 +36,7 @@
 
 
 		private function init() : void {
+			aAliasClone.source = aAlias.source;
 			applyFilter();
 		}
 
@@ -45,15 +50,15 @@
 			applyFilter();
 			
 			var newAlias : Alias = new Alias();
-			aAlias.addItem(newAlias);
-			aliasList.selectedIndex = aAlias.length - 1;	
+			aAliasClone.addItem(newAlias);
+			aliasList.selectedIndex = aAliasClone.length - 1;	
 			
 			selectAlias();		
 		} 
   		
   		private function removeAlias() : void {
   			if (aliasList.selectedIndex >= 0){
-  				aAlias.removeItemAt(aliasList.selectedIndex);  				
+  				aAliasClone.removeItemAt(aliasList.selectedIndex);  				
   			} 
   		}
   		
@@ -65,8 +70,8 @@
 					groupList.selectedIndex = 0;
 					applyFilter();	  				
 	  				editor_alias = new Alias();
-					aAlias.addItem(editor_alias);
-					aliasList.selectedIndex = aAlias.length - 1;
+					aAliasClone.addItem(editor_alias);
+					aliasList.selectedIndex = aAliasClone.length - 1;
 	  			}  
 	  			
 	  			editor_alias.trigger = alias_name.text;
@@ -110,8 +115,8 @@
   		}
 
 		private function applyFilter() : void {		
-			aAlias.filterFunction = listFilter;
-			aAlias.refresh();			
+			aAliasClone.filterFunction = listFilter;
+			aAliasClone.refresh();			
 		}
 	
 		private function listFilter(t : Alias) : Boolean {
@@ -128,7 +133,7 @@
 
 	<mx:VBox height="100%" width="150">		
 	  	<mx:ComboBox id="groupList" dataProvider="{aTriggerGroup}" labelField="name"  width="150" change="applyFilter()" />  
-	    <mx:List  id="aliasList" dataProvider="{aAlias}" height="100%" width="150" change="selectAlias()" />
+	    <mx:List  id="aliasList" dataProvider="{aAliasClone}" height="100%" width="150" change="selectAlias()" />
 	</mx:VBox>
 	  	
 		
