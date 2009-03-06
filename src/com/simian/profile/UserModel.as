@@ -5,12 +5,14 @@ package com.simian.profile {
 	import com.simian.window.WindowEvent;
 	
 	import flash.net.SharedObject;
+	import flash.net.getClassByAlias;
 	import flash.utils.ByteArray;
+	import flash.utils.Dictionary;
+	import flash.utils.describeType;
 	
 	import flexlib.mdi.containers.MDIWindow;
 	
 	import mx.collections.ArrayCollection;
-	import mx.utils.ObjectUtil;
 	
 		
 	public class UserModel {
@@ -195,27 +197,33 @@ package com.simian.profile {
 			
 			var configObj : Object = baIn.readObject();
 
+			// this dictionary will be used to match old objects pointers to new ones 
+			// as we are going to recreate all objects (in case of schema evolution).			
+			var objectLookup : Dictionary = new Dictionary();
+
         	// send event to close all windows
 			var mdiEvent : WindowEvent = new WindowEvent(WindowEvent.CLOSE_WINDOWS);							
 			dispatcher.dispatchEvent(mdiEvent);	  
 
-        	if (configObj.hasOwnProperty('aTriggerGroup') && configObj.aTrigger) {        		
-        		// because these need to match existing objects we can't rejig them         		
-        		aTriggerGroup = new ArrayCollection(configObj.aTriggerGroup.source);        		
+        	if (configObj.hasOwnProperty('aTriggerGroup') && configObj.aTrigger) {      
+        		// if (configObj.aTriggerGroup.length > 0 && configObj.aTriggerGroup.getItemAt(0).hasOwnProperty('data') ) 
+        		configObj.aTriggerGroup.removeItemAt(0);  		        		     		
+        		this.aTriggerGroup.source = importArray(configObj.aTriggerGroup.source,TriggerGroup,objectLookup);        		
+        		        		
         	}
 						
         	if (configObj.hasOwnProperty('aWindowSettings') && configObj.aWindowSettings)
-        		aWindowSettings = importArray(configObj.aWindowSettings,MDIWindowSettings);
+        		aWindowSettings = importArray(configObj.aWindowSettings,MDIWindowSettings,objectLookup);
         	
         	if (configObj.hasOwnProperty('aAlias') && configObj.aAlias)
-        		aAlias 	= new ArrayCollection(importArray(configObj.aAlias.source,Alias));
+        		aAlias 	= new ArrayCollection(importArray(configObj.aAlias.source,Alias,objectLookup));
         	
         	if (configObj.hasOwnProperty('aTrigger') && configObj.aTrigger)
-        		aTrigger = new ArrayCollection(importArray(configObj.aTrigger.source,Trigger));
+        		aTrigger = new ArrayCollection(importArray(configObj.aTrigger.source,Trigger,objectLookup));
         	
         	
         	if (configObj.hasOwnProperty('telnetSettings') && configObj.telnetSettings) {
-        		telnetSettings = importObject(configObj.telnetSettings, TelnetSettings) as TelnetSettings;
+        		telnetSettings = importObject(configObj.telnetSettings, TelnetSettings,objectLookup) as TelnetSettings;
         	}						
 
 			// remove any redundant trigger groups
@@ -225,6 +233,9 @@ package com.simian.profile {
 			mdiEvent = new WindowEvent(WindowEvent.OPEN_TELNET_WINDOW);							
 			dispatcher.dispatchEvent(mdiEvent);
 			
+			// clear the object lookup object now we are done
+			objectLookup = null;
+			
 		}
 		
 
@@ -233,24 +244,68 @@ package com.simian.profile {
 		// takes a generic object and a class definition and populates a new instance of that class 
 		// with any properties that are in the generic object.
 		// this is in case extra props are added so that old objects can be imported (new props will go to their default value) 
-		public function importObject(oIn:Object,classIn:Class) : Object {			
-			var oOut: Object = new classIn();
-			var classDef : Object = ObjectUtil.getClassInfo(oOut);			
-			for each (var propName : QName in classDef.properties){
-				if (oIn.hasOwnProperty(propName.localName)) {
-					oOut[propName.localName] = oIn[propName.localName];
-				}					 
-			}						
+		public function importObject(oIn:Object,classIn:Class,objectLookup:Dictionary) : Object {			
+			
+			// check to see if this object already exists in the dictionary.
+			var oOut: Object = objectLookup[oIn];
+			
+			var typeRegexp : RegExp = /com\.simian\.([^:]*)::(\w+)/;			
+			
+			// otherwise create it!
+			if (oOut == null) {			
+				
+				oOut = new classIn();
+				
+				var classInfo:XML = describeType(oOut); 
+				
+				
+				for each (var v:XML in classInfo..variable) {
+					
+					var propName : String = v.@name; 
+					var propType : String = v.@type;
+					
+					if (oIn.hasOwnProperty(propName)) {
+						
+						var thisProp : * = oIn[propName];
+						
+						// must be at least this long to be com.simian.x::x
+						// not going to be any primitive type i can think of bigger than this length
+						// currently only support embedded com.simian objects
+						// i'm sure theres a better way to do this...
+						if (propType.length > 14) {														
+							if (thisProp != null){
+								// check dictionary for this class
+								var c : Class = objectLookup[propType];
+								// otherwise figure it out from the object (this is going to die horribly if it isn't com.simian...)
+								if (c == null) {
+									var oType : Object = typeRegexp.exec(propType);
+									c = getClassByAlias('com.simian.' + oType[1] + '.' + oType[2]);
+									objectLookup[propType] = c;	
+								}
+								// this has the potential to cause recursive badness. 
+								// might have to put this into a queue to process later 
+								oOut[propName] = importObject(thisProp,c,objectLookup);									
+							}
+							
+						} else {
+							oOut[propName] = thisProp;	
+						}
+												
+						
+					}					 
+				}										
+				objectLookup[oIn] = oOut;
+			}			
 			return oOut;			
 		}
 
 		
 		// imports an array or array collection into an array of the correct type
 		// have to handle arrays of length 1 in the XML which don't show up as being an array at all		
-		public function importArray(aIn:Array,classDef:Class) : Array {			
+		public function importArray(aIn:Array,classDef:Class,objectLookup:Dictionary) : Array {			
 			var aOut : Array = new Array();	
 			for each (var obj:Object in aIn) {				
-				aOut.push(importObject(obj,classDef));				
+				aOut.push(importObject(obj,classDef,objectLookup));				
 			}						
 			return aOut;
 		}
