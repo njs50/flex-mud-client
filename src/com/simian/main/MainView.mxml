@@ -30,11 +30,11 @@
 			
 			
 			private function newWindow(event:WindowEvent) : void {				
-				mdiCanvas.windowManager.add(event.window);
-				event.window.getFocus();
+				mdiCanvas.windowManager.add(event.window);				
 				var winEvent : WindowEvent = new WindowEvent(WindowEvent.LOAD_WINDOW_SETTINGS);				
 				winEvent.window = event.window;
-				dispatchEvent(winEvent);																								
+				dispatchEvent(winEvent);	
+				mdiCanvas.windowManager.bringToFront(event.window);																						
 			}
 
 			private function closeWindows(event:WindowEvent = null) : void {				

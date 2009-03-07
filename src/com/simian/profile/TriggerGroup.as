@@ -4,8 +4,7 @@ package com.simian.profile
 	[RemoteClass(alias="com.simian.profile.TriggerGroup")]		
 	public class TriggerGroup
 	{
-		public var name : String;
-			
+		public var name : String;			
 		
 		public function TriggerGroup(_name:String = '')
 		{

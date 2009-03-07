@@ -200,6 +200,9 @@ package com.simian.profile {
 			// this dictionary will be used to match old objects pointers to new ones 
 			// as we are going to recreate all objects (in case of schema evolution).			
 			var objectLookup : Dictionary = new Dictionary();
+			// we are going to queue up the import of any embedded objects to prevent
+			// infinite loops of badness when a child obj is linked to a parent
+			var aDelayedImportQueue : Array = new Array();
 
         	// send event to close all windows
 			var mdiEvent : WindowEvent = new WindowEvent(WindowEvent.CLOSE_WINDOWS);							
@@ -208,23 +211,31 @@ package com.simian.profile {
         	if (configObj.hasOwnProperty('aTriggerGroup') && configObj.aTrigger) {      
         		// if (configObj.aTriggerGroup.length > 0 && configObj.aTriggerGroup.getItemAt(0).hasOwnProperty('data') ) 
         		configObj.aTriggerGroup.removeItemAt(0);  		        		     		
-        		this.aTriggerGroup.source = importArray(configObj.aTriggerGroup.source,TriggerGroup,objectLookup);        		
-        		        		
+        		this.aTriggerGroup.source = importArray(configObj.aTriggerGroup.source,TriggerGroup,objectLookup,aDelayedImportQueue);        		        		        		
         	}
 						
         	if (configObj.hasOwnProperty('aWindowSettings') && configObj.aWindowSettings)
-        		aWindowSettings = importArray(configObj.aWindowSettings,MDIWindowSettings,objectLookup);
+        		aWindowSettings = importArray(configObj.aWindowSettings,MDIWindowSettings,objectLookup,aDelayedImportQueue);
         	
         	if (configObj.hasOwnProperty('aAlias') && configObj.aAlias)
-        		aAlias 	= new ArrayCollection(importArray(configObj.aAlias.source,Alias,objectLookup));
+        		aAlias 	= new ArrayCollection(importArray(configObj.aAlias.source,Alias,objectLookup,aDelayedImportQueue));
         	
         	if (configObj.hasOwnProperty('aTrigger') && configObj.aTrigger)
-        		aTrigger = new ArrayCollection(importArray(configObj.aTrigger.source,Trigger,objectLookup));
+        		aTrigger = new ArrayCollection(importArray(configObj.aTrigger.source,Trigger,objectLookup,aDelayedImportQueue));
         	
         	
         	if (configObj.hasOwnProperty('telnetSettings') && configObj.telnetSettings) {
-        		telnetSettings = importObject(configObj.telnetSettings, TelnetSettings,objectLookup) as TelnetSettings;
+        		telnetSettings = importObject(configObj.telnetSettings, TelnetSettings,objectLookup,aDelayedImportQueue) as TelnetSettings;
         	}						
+
+			// process any delayed imports
+			while (aDelayedImportQueue.length) {
+				var thisImport : DelayedImport = aDelayedImportQueue.pop();								
+				thisImport.destObj[thisImport.destProp] = importObject(thisImport.oIn,thisImport.oInClass,objectLookup,aDelayedImportQueue);
+			}
+			
+			aDelayedImportQueue = null;
+		
 
 			// remove any redundant trigger groups
 			removeEmptyGroups();
@@ -244,7 +255,7 @@ package com.simian.profile {
 		// takes a generic object and a class definition and populates a new instance of that class 
 		// with any properties that are in the generic object.
 		// this is in case extra props are added so that old objects can be imported (new props will go to their default value) 
-		public function importObject(oIn:Object,classIn:Class,objectLookup:Dictionary) : Object {			
+		public function importObject(oIn:Object,classIn:Class,objectLookup:Dictionary,aDelayedImportQueue:Array) : Object {			
 			
 			// check to see if this object already exists in the dictionary.
 			var oOut: Object = objectLookup[oIn];
@@ -284,7 +295,13 @@ package com.simian.profile {
 								}
 								// this has the potential to cause recursive badness. 
 								// might have to put this into a queue to process later 
-								oOut[propName] = importObject(thisProp,c,objectLookup);									
+								
+								oOut[propName] = objectLookup[thisProp];
+								
+								if (oOut[propName] == null && thisProp != null) {											
+									aDelayedImportQueue.push(new DelayedImport(oOut,propName,thisProp,c));
+								}
+								
 							}
 							
 						} else {
@@ -302,10 +319,10 @@ package com.simian.profile {
 		
 		// imports an array or array collection into an array of the correct type
 		// have to handle arrays of length 1 in the XML which don't show up as being an array at all		
-		public function importArray(aIn:Array,classDef:Class,objectLookup:Dictionary) : Array {			
+		public function importArray(aIn:Array,classDef:Class,objectLookup:Dictionary,aDelayedImportQueue:Array) : Array {			
 			var aOut : Array = new Array();	
 			for each (var obj:Object in aIn) {				
-				aOut.push(importObject(obj,classDef,objectLookup));				
+				aOut.push(importObject(obj,classDef,objectLookup,aDelayedImportQueue));				
 			}						
 			return aOut;
 		}
@@ -333,3 +350,22 @@ package com.simian.profile {
 
 	}
 }
+
+	
+
+class DelayedImport {
+
+	public var destObj : *;
+	public var destProp : String;
+	public var oIn : *;
+	public var oInClass : Class;
+
+	function DelayedImport(_destObj : *, _destProp : String, _oIn : *, _oInClass : Class) {
+		this.destObj = _destObj;
+		this.destProp = _destProp;
+		this.oIn = _oIn;
+		this.oInClass = _oInClass;
+	}
+	
+}	
+	
