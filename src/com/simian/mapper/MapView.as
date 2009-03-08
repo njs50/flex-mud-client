@@ -13,11 +13,11 @@ package com.simian.mapper
 	public class MapView extends ScrollControlBase
 	{		
  
-		private var _map : Map; 		
+		private var map : Map; 		
 		private var mapSprite : Sprite;		
 		private var current_layer_sprite : Sprite;	 
 
-		[Bindable]
+		
 		public var current_room : Room;
 
 		public var last_room : Room;
@@ -42,16 +42,6 @@ package com.simian.mapper
          	this.addEventListener(Event.RESIZE, resizeHandler);
             
         }		
-        
-		
-		public function set map (oMap:Map) : void {			
-			_map = oMap			
-			changeLayer();
-		}
-
-		public function get map () : Map {
-			return _map;
-		}
 
 		
 		private function get internal_height() : int {			
@@ -70,22 +60,42 @@ package com.simian.mapper
 
 
 
-		public function changeLayer() : void {
-			if (current_room != null) {							
-				if (current_layer_sprite != null) mapSprite.removeChild(current_layer_sprite);													
-				current_layer_sprite = _map.oRooms[current_room.room_z].mapSprite
-				mapSprite.addChild(current_layer_sprite);	
-			}
-		}
-
-
 		public function changeRoom() : void {		
-			// if the layer has changed update what we can see
-			if (last_room != null) {			
-				if (current_room.room_z != last_room.room_z) changeLayer();				
+			
+			// don't do anything if we dont have at least one room
+			if (current_room != null) {				
+				
+				var bChangeSprite : Boolean = false;
+
+				// make sure we are still on the right map, if we've changed then update the layer
+				if (map != current_room.oMap) {
+					map = current_room.oMap;
+					bChangeSprite = true;	
+				}
+				
+				// if the layer has changed update the layer
+				if (last_room != null) {			
+					if (current_room.room_z != last_room.room_z) bChangeSprite = true;				
+				} else bChangeSprite = true;
+								
+			
+				// if it's time to change our map layer sprite...
+				if (bChangeSprite) {
+					if (current_layer_sprite != null) mapSprite.removeChild(current_layer_sprite);													
+					current_layer_sprite = current_room.oMap.oRooms[current_room.room_z].mapSprite
+					mapSprite.addChild(current_layer_sprite);						
+				}
+
+				// center the map (if required)
+				centerMap();	
+				
+				// update the last room ref			
+				last_room = current_room;
+			
 			}			
-			centerMap();			
-			last_room = current_room;						
+			
+			
+									
 		}
 
 
@@ -101,12 +111,12 @@ package com.simian.mapper
         	// need to readjust position if mapRect.x and y is no longer at (0,0)
         	
             if(event.direction==ScrollEventDirection.VERTICAL){                
-                this.mapSprite.y = event.position - mapRect.height - mapRect.y;                
+                this.mapSprite.y = (this.maxVerticalScrollPosition - event.position) - mapRect.height - mapRect.y;                
             }
             
             // regular horizontal scrolling
             else{
-                this.mapSprite.x =  event.position - mapRect.width - mapRect.x;
+                this.mapSprite.x = (this.maxHorizontalScrollPosition - event.position) - mapRect.width - mapRect.x;
             }                       
                        
         }		
@@ -120,14 +130,13 @@ package com.simian.mapper
 			// set scroll bar sizes
 			
 			// so total width of the scroll bars is the width of the big sprite + one visible screen on each end.
-			// this allows the map to be just off the screen.
-			this.setScrollBarProperties(mapRect.width + this.internal_width, 1 , mapRect.height + this.internal_height, 1);
-
+			// this allows the map to be just off the screen. 
+			this.setScrollBarProperties(mapRect.width + (this.internal_width * 2), this.internal_width , mapRect.height + (this.internal_height * 2), this.internal_height);
 
 			// set scroll positions			
-			this.horizontalScrollPosition 	= mapRect.width  + mapRect.x + this.mapSprite.x; 			
-			this.verticalScrollPosition 	= mapRect.height + mapRect.y + this.mapSprite.y;
 			
+			this.horizontalScrollPosition 	= this.maxHorizontalScrollPosition - mapRect.width - mapRect.x - this.mapSprite.x; 			
+			this.verticalScrollPosition 	= this.maxVerticalScrollPosition - mapRect.height - mapRect.y - this.mapSprite.y;			
 			
 			// invalidate display list to force update of scroll bars
 			this.invalidateDisplayList();
@@ -136,12 +145,11 @@ package com.simian.mapper
 		}
 		
 		// centers the map on the current room
+		// only reposition if we have moved outside of the middle of the screen	
 		private function centerMap() : void {
 			
 			// check that we have actually loaded a map, if not load the current one
-			if (current_layer_sprite == null) changeLayer();
-			
-			// only reposition if we have moved outside of the middle of the screen	
+			if (current_layer_sprite == null) changeRoom();
 			
 			// calc our current x and y relative to the sprites position
 			var current_x : int = mapSprite.x + current_room.x;

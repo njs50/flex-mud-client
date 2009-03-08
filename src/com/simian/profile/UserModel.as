@@ -1,6 +1,7 @@
 package com.simian.profile {		
 	
 	import com.asfusion.mate.events.Dispatcher;
+	import com.simian.mapper.Map;
 	import com.simian.telnet.TelnetSettings;
 	import com.simian.window.WindowEvent;
 	
@@ -23,19 +24,20 @@ package com.simian.profile {
 		private var _aTriggerGroup : ArrayCollection;
 		private var _aWindowSettings	: Array;		
 		private var _telnetSettings : TelnetSettings
-		
+				
+		private var _aMaps : Array;
 		
 		// local shared object data
 		private var localData : SharedObject;
 		
-		private static const PROFILE_VERSION : String = "0.000006g";
+		private static const PROFILE_VERSION : String = "0.000006i";
 		
 		private var dispatcher : Dispatcher = new Dispatcher();
 
 		
 		// constructor (load data from shared objects here if they exist (init them if they don't)...)
 		public function UserModel(){			
-								
+			
 			_aAlias 	= new ArrayCollection();	
 			_aTrigger 	= new ArrayCollection();				
 			_aTriggerGroup 	= new ArrayCollection();
@@ -51,6 +53,7 @@ package com.simian.profile {
 			// if the flash cookie is new lets initialise all the stuff we plan to store in it
 			if (localData.size == 0) {
 				localData.data.aAlias 			= new Array();
+				localData.data.aMaps 			= new Array();				
 				localData.data.aTrigger 		= new Array();
 				localData.data.aTriggerGroup	= new Array();				
 				localData.data.aWindowSettings 	= new Array();
@@ -58,6 +61,7 @@ package com.simian.profile {
 				localData.data.telnetSettings	= new TelnetSettings(); 				
 			}
 			
+			aMaps				= localData.data.aMaps;
 			_aAlias.source 			= localData.data.aAlias;			
 			_aTrigger.source 		= localData.data.aTrigger;
 			_aTriggerGroup.source 	= localData.data.aTriggerGroup;			
@@ -113,7 +117,16 @@ package com.simian.profile {
 			return this._aTriggerGroup;
 		}
 		
-
+		[Bindable]		
+		public function set aMaps(a:Array) : void {
+			this._aMaps = a;
+			localData.data.aMaps = a;
+			writeProfile();			
+		}
+		
+		public function get aMaps() : Array {
+			return this._aMaps;
+		}
 
 		[Bindable]		
 		public function set aWindowSettings(a:Array) : void {
@@ -208,11 +221,14 @@ package com.simian.profile {
 			var mdiEvent : WindowEvent = new WindowEvent(WindowEvent.CLOSE_WINDOWS);							
 			dispatcher.dispatchEvent(mdiEvent);	  
 
-        	if (configObj.hasOwnProperty('aTriggerGroup') && configObj.aTrigger) {      
+        	if (configObj.hasOwnProperty('aTriggerGroup') && configObj.aTriggerGroup) {      
         		// if (configObj.aTriggerGroup.length > 0 && configObj.aTriggerGroup.getItemAt(0).hasOwnProperty('data') ) 
         		configObj.aTriggerGroup.removeItemAt(0);  		        		     		
         		this.aTriggerGroup.source = importArray(configObj.aTriggerGroup.source,TriggerGroup,objectLookup,aDelayedImportQueue);        		        		        		
         	}
+
+        	if (configObj.hasOwnProperty('aMaps') && configObj.aMaps)
+        		aMaps = importArray(configObj.aMaps,Map,objectLookup,aDelayedImportQueue);        	
 						
         	if (configObj.hasOwnProperty('aWindowSettings') && configObj.aWindowSettings)
         		aWindowSettings = importArray(configObj.aWindowSettings,MDIWindowSettings,objectLookup,aDelayedImportQueue);

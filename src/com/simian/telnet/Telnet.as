@@ -1,6 +1,5 @@
 package com.simian.telnet {
     import com.asfusion.mate.events.Dispatcher;
-    import com.simian.profile.Alias;
     
     import flash.events.*;
     import flash.net.Socket;
@@ -215,9 +214,6 @@ package com.simian.telnet {
                         	if (b == LF) { 
                         		// output the line in the buffer
                         		msg(ansi_line_buffer);   
-
-                        		// parse the line of text                        		
-                        		parse_line(line_buffer);
                         		
                         		// add this line to the block buffer
                         		if (line_buffer.length > 0)	block_buffer += line_buffer + '\n';                        		                        	
@@ -329,14 +325,26 @@ package com.simian.telnet {
            	 	  		( line_buffer.search('Password:') > -1 ) 
            	 	    ){
            			
-           			// parse the prompt (now we know it's valid)            			           			           			         		
-		       		parse_prompt(line_buffer);
 		       		
-		           	// parse the block (minus prompt)
+		       		
+		           	// parse the block and each line in it (minus prompt)
 		           	if (block_buffer.length > 0){
+		           	
+		           		// parse each line in the block
+		           		var aLines : Array = block_buffer.split('\n');
+		           		for each (var line_text : String in aLines) {		           			
+							if (parse_line.length > 0) parse_line(line_text);
+		           		}		           		
+		           		
+		           		// parse the entire block
 		           		parse_block(block_buffer);                      
+		           	
 		           		block_buffer = "";
 		           	} 				 				 	
+
+           			// parse the prompt (now we know it's valid)            			           			           			         		
+		       		parse_prompt(line_buffer);
+
 
 					bPromptAppend = false;
 						

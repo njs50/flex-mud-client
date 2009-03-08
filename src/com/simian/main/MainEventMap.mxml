@@ -4,7 +4,8 @@
    xmlns="http://mate.asfusion.com/">
 
 	<mx:Script>
-		<![CDATA[			
+		<![CDATA[
+			import com.simian.mapper.MapperModel;			
 			import com.simian.telnet.*;
 			import mx.events.*;						
 			import com.simian.profile.*;
@@ -37,6 +38,8 @@
 	
 
 	<!-- Injectors -->
+
+
 	<Injectors target="{TelnetWindow}">
 		<PropertyInjector targetKey="title" source="{MainModel}" sourceKey="_title" />		
 		<PropertyInjector source="{UserModel}" sourceKey="telnetSettings" targetKey="telnetSettings" />		

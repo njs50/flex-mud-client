@@ -14,6 +14,12 @@ package com.simian.mapper
 		// size of sprite 
 		private static const sprite_area : int = 29;
 		private static const join_size : int = 5;
+		
+		// the map this room belongs to
+		public var oMap : Map;
+		
+		// instances of this room in other maps;
+		public var aLinkedRooms : Array;
 				
 		public var room_name : String; 				
 		public var room_line1 : String;
@@ -32,13 +38,15 @@ package com.simian.mapper
 		
 		private var dispatcher : Dispatcher = new Dispatcher();
 		
-		public function Room(_name:String = '',exits_string:String = '',_line1:String = '',_line2:String = '',_line3:String = '', _x : int = 0, _y : int = 0, _z:int = 0, _aExits:Array = null)
+		public function Room(_map:Map, _name:String = '',exits_string:String = '',_line1:String = '',_line2:String = '',_line3:String = '', _x : int = 0, _y : int = 0, _z:int = 0, _aExits:Array = null)
 		{
 
 			// set default properties.
 			this.doubleClickEnabled = true;
 			this.mouseChildren = false;
 
+			oMap = _map;			
+			
 			room_name = _name;
 			room_line1 = _line1;
 			room_line2 = _line2;
@@ -46,7 +54,6 @@ package com.simian.mapper
 			room_x = _x;
 			room_y = _y;
 			room_z = _z;
-			
 			
 			// set us up the exits
 			if (room_aExits == null) room_aExits = new Array();
@@ -63,10 +70,20 @@ package com.simian.mapper
 			// add an event handler for if someone clicks on us
 			addEventListener(MouseEvent.CLICK,clickHandler);
 			addEventListener(MouseEvent.DOUBLE_CLICK,doubleclickHandler);
+			addEventListener(MouseEvent.MOUSE_OVER,mouseOverHandler);
+			
 			
 			// draw us a sprite
 			redraw();
 			
+		}
+
+		public function mouseOverHandler(event:Event) : void {			
+			// broadcast that the user has selected this room        	
+        	var mEvent : MapperEvent;       	
+			mEvent = new MapperEvent(MapperEvent.MOUSE_OVER_ROOM);        			
+			mEvent.room = this;
+			dispatcher.dispatchEvent(mEvent);							
 		}
 
 
@@ -182,8 +199,6 @@ package com.simian.mapper
 	
 			}
 			
-
-
 			// position the room in the map...			
 			this.x = this.room_x * sprite_area;
 			this.y = this.room_y * sprite_area * -1;

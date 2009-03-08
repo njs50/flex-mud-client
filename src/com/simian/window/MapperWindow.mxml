@@ -8,14 +8,17 @@
 	xmlns:mx="http://www.adobe.com/2006/mxml"	 	
 	name="mapperWindow"		
  	creationComplete="init()"
- 	title="{oMap.map_name}"
+ 	title="{oMapModel.oMap.map_name}"
  	styleName="standardPadding"		 	
 >
 
 
   <mx:Script>
   <![CDATA[
-  	import flexlib.scheduling.scheduleClasses.utils.Selection;
+  	import com.simian.mapper.MapperModel;
+  	import mx.collections.ArrayCollection;
+  	import com.simian.mapper.Exit;
+  	
   	import mx.binding.utils.ChangeWatcher;
   	
   	import com.simian.mapper.Room;
@@ -23,106 +26,116 @@
   	
   	import com.simian.mapper.Map;
 
-	import mx.binding.utils.BindingUtils;
-
-
-
-  	[Bindable]
-	public var oMap : Map;
+	[Bindable]
+	public var oMapModel : MapperModel;
+		  
+  	private var watcher:ChangeWatcher;
   
-  	[Bindable]
-  	public var current_room : Room = new Room();
-  	
-  	[Bindable]
-  	public var selected_room : Room;
-  	
-  	public var bMappingEnabled : Boolean = false;
-  
-  	public var watcher:ChangeWatcher;
-  
- 	private function init() : void { 		
-
-		updateToggleLabel();
- 		
- 		watcher = ChangeWatcher.watch(this,"current_room",roomChange);
- 		  		
+ 	
+ 	private function init() : void { 				
+ 		watcher = ChangeWatcher.watch(oMapModel,"current_room",roomChange); 		  		
  	} 
  	
- 	private function roomChange(e:Event) : void {
+ 	
+ 	// every time we change room call this...
+ 	private function roomChange(e:Event = null) : void {
  		
- 		if (current_room != null) {
+ 		if (oMapModel.current_room != null) {
  			
-	 		form_heading.text = current_room.room_name;
-	 		form_desc.text = current_room.room_line1+ ' ' + current_room.room_line2 + ' ' + current_room.room_line3;
+ 			map_name.text = oMapModel.oMap.map_name;
+	 		form_heading.text = oMapModel.current_room.room_name;
+	 		form_desc.text = oMapModel.current_room.room_line1+ ' ' + oMapModel.current_room.room_line2 + ' ' + oMapModel.current_room.room_line3;	 			 	
 	 		
  			mapview.changeRoom();
+ 			
+ 			if (selected_map.selectedItem != oMapModel.current_room.oMap) selected_map.selectedItem = oMapModel.current_room.oMap;
+ 			
  		}
  		
  	}
  	
- 	private function updateToggleLabel() : void {
- 		if (bMappingEnabled) toggle_mapper.label = 'stop mapping';
- 		else toggle_mapper.label = 'start mapping';
- 	}
- 	
- 	private function toggle_mapping() : void {
-
-		// despatch a mapping start/stop even
-    	var mEvent : MapperEvent;       	
-
- 		if (bMappingEnabled){ 
- 			bMappingEnabled = false;
- 			mEvent = new MapperEvent(MapperEvent.MAPPER_STOP);
- 		}
- 		else { 
- 			bMappingEnabled = true;
- 			mEvent = new MapperEvent(MapperEvent.MAPPER_START);
- 		}
-		dispatchEvent(mEvent);
-
- 		updateToggleLabel();
- 	}
+ 
  	
  	private function find() : void { 		
  		// despatch a mapping start/stop even
-    	var mEvent : MapperEvent;       	
-		mEvent = new MapperEvent(MapperEvent.MAPPER_FIND);
-		dispatchEvent(mEvent);		
+    	oMapModel.findMe();	
  	}
   
   
   	private function deleteSelected() : void {
-  		if (selected_room != null) oMap.deleteRoom(selected_room);
+  		if (oMapModel.selected_room != null) oMapModel.oMap.deleteRoom(oMapModel.selected_room);
   	}
-  
+  	
+  	private function mapChange() : void {
+  		oMapModel.oMap = selected_map.selectedItem as Map;
+  		oMapModel.bMappingEnabled = false;
+  		oMapModel.current_room.bCurrentroom = false;
+  		oMapModel.current_room.redraw();  		
+  		oMapModel.current_room = oMapModel.oMap.getRoom(0,0,0);  		
+  		oMapModel.lastRoom = null;
+  		roomChange();  		
+  	}
+
+  	private function mapDelete() : void {
+  		trace('ruh roh, map deleting time');  		
+  	}
+  	
+  	private function newMap() : void {
+  		// make sure they've entered a name for this new map
+  		if (selected_map.inputText != null && selected_map.inputText.length > 0) {			
+			oMapModel.newMap(selected_map.inputText);
+  		}
+  	}  	
+
+
+  	private function renameMap() : void {
+  		if (selected_map.inputText != null && selected_map.inputText.length > 0) oMapModel.oMap.map_name = selected_map.inputText;
+  	}  	  
   
   ]]>  
   </mx:Script>
-
+	
+		
+	<mate:Listener type="{MapperEvent.MOUSE_OVER_ROOM}" receive="mapview.toolTip=event.room.room_name" />	
+	
 	
 	<mx:TabNavigator id="mapTabs" width="100%" height="100%" verticalGap="2" paddingTop="2" creationPolicy="all">
 
 		<mx:VBox label="Map" styleName="standardPadding">
 
-			<mx:HBox>		
-				<mx:Button id="toggle_mapper" click="toggle_mapping()" />
-				<mx:Button label="find" click="find()" />
-				<mx:Button label="delete" click="deleteSelected()" />	
+			<mx:HBox width="100%">
+				<extended:EditableComboBox id="selected_map" width="100" change="mapChange()" dataProvider="{oMapModel.aMaps}" labelField="map_name" editable="true" xmlns:extended="com.simian.extendedComponents.*" />
+				<mx:Button label="New Map" click="newMap()" />
+				<mx:Button label="Rename Map" click="renameMap()" />
+				<mx:Spacer width="100%" />
+				<mx:Button label="Delete Map" />		
 			</mx:HBox>
 			
 			<mapper:MapView 
-				xmlns:mapper="com.simian.mapper.*" 		
-				map="{oMap}" 
+				xmlns:mapper="com.simian.mapper.*" 						
 				width="100%" 
 				height="100%" 
 				id="mapview" 
-				current_room="{current_room}"
-			/>	
+				current_room="{oMapModel.current_room}"				 
+			/>
+
+			<mx:HBox width="100%">
+				<mx:CheckBox label="Auto Mapping" selected="{oMapModel.bMappingEnabled}" id="bAutomap" click="oMapModel.bMappingEnabled=bAutomap.selected" />
+				<mx:CheckBox label="Auto Moving" selected="{oMapModel.bAutoMove}" id="autoMove" click="oMapModel.bAutoMove=autoMove.selected" />								
+				<mx:Button label="Find Room" click="find()" />
+				<mx:Spacer width="100%" />
+				<mx:Button label="Delete Room" click="deleteSelected()" />	
+			</mx:HBox>			
+				
 		</mx:VBox>
 		
 		
 		
 		<mx:Form label="Current Room" width="100%" height="100%" styleName="standardPadding">
+
+			<mx:FormItem label="Map : " width="100%">
+				<mx:Label id="map_name" />
+			</mx:FormItem>			
 			
 			<mx:FormItem label="Name : " width="100%">
 				<mx:Label id="form_heading" />
@@ -130,7 +143,7 @@
 
 			<mx:FormItem label="Desc : " width="100%">
 				<mx:TextArea id="form_desc" enabled="false" width="100%" height="60" />	
-			</mx:FormItem>
+			</mx:FormItem>						
 			
 		</mx:Form>
 		

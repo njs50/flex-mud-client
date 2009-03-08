@@ -11,8 +11,9 @@ package com.simian.mapper {
 		public var oMap : Map;
 		public var current_room : Room;
 		public var lastRoom : Room;
-		public var current_layer : MapLayer;		
+		
 		public var bMappingEnabled : Boolean = false;
+		public var bAutoMove : Boolean = false;
 		public var aMaps : Array;
 		
 		public var selected_room : Room;
@@ -21,15 +22,18 @@ package com.simian.mapper {
 		private var dispatcher : Dispatcher = new Dispatcher();
 		
 		private var exitingRegExp : RegExp = /You\s(\S+\s?\S*)\s(north|east|south|west|up|down)\.$/;		
-		private var roomRegExp : RegExp = /([^\n]*)\n\[Exits:([^\]]*)\]\s*([^\n]*)\n([^\n]*)\n([^\n]*)/;
-		
+		private var roomRegExp : RegExp = /([^\n]*)\n\[Exits:([^\]]*)\]\s*([^\n]*)\n([^\n]*)\n([^\n]*)/g;
+	
+	
+		// vars for room detection
 		private var current_x : int = 0;
 		private var current_y : int = 0;
-		private var current_z : int = 0;
+		private var current_z : int = 0;				
+		private var move_direction : String = '';
+		private var aQueuedMoves : Array = new Array();		
+	
 				
-		private var move_direction : String = '';		
-				
-		
+		// vars for path handling	
 		private var aPath : Array = new Array();
 		private var lastPathStep : String = '';
 		private var aPathBehind : Array = new Array();		
@@ -39,20 +43,66 @@ package com.simian.mapper {
 		
 		public function MapperModel() : void {
 		
-			aMaps = new Array();
-			
-			// create a new map
-			oMap = new Map('Test Map');
-			
-			// add the new map to the array of maps
-			aMaps.push(oMap);
-
-			// despatch a map change event
-        	var mEvent : MapperEvent;       	
-			mEvent = new MapperEvent(MapperEvent.CHANGE_MAP);        				
-			dispatcher.dispatchEvent(mEvent);
+			aMaps = new Array();			
 			
 		}
+	
+	
+	  	public function newMap(mapname:String) : void {
+	  		// make sure they've entered a name for this new map
+	  		
+	  		if (aMaps.length == 0 ) {
+
+				// create a new map
+				oMap = new Map(mapname);
+				
+				// add the new map to the array of maps
+				aMaps.push(oMap);
+	  			
+	  		} else {
+	  		
+				// create a new map
+				var oNewMap : Map = new Map(mapname);
+					
+				// add the new map to the array of maps
+				aMaps.push(oNewMap);  
+				
+				var oldLinkRoom : Room = current_room;
+				var newLinkRoom : Room = new Room(oNewMap,current_room.room_name,'',current_room.room_line1,current_room.room_line2,current_room.room_line3,0,0,0);
+	
+				if (oldLinkRoom.aLinkedRooms == null) oldLinkRoom.aLinkedRooms = new Array();
+	
+				// add the parent (and it's linked rooms) as a link to this room						
+				newLinkRoom.aLinkedRooms = oldLinkRoom.aLinkedRooms.slice();
+				newLinkRoom.aLinkedRooms.push(oldLinkRoom);			
+				// add this room to the parents list of linked rooms
+				oldLinkRoom.aLinkedRooms.push(newLinkRoom);
+				// add this room to any other rooms linked to the parent
+				for each (var oRoom : Room in oldLinkRoom.aLinkedRooms) oRoom.aLinkedRooms.push(newLinkRoom);  						
+				
+				// add exit stubs for any exits on the parent room			
+				for each (var oExit : Exit in oldLinkRoom.room_aExits) newLinkRoom.room_aExits.push(new Exit(oExit.direction));
+					
+				
+				// add room to map
+				oNewMap.setRoom(0,0,0,newLinkRoom);
+				
+				// change model details (back to defaults!)
+				oMap = oNewMap;
+				lastRoom = current_room;
+	 			lastRoom.bCurrentroom = false;
+	 			lastRoom.redraw(); 								
+				current_room = newLinkRoom;
+				current_room.bCurrentroom = true;
+				current_room.redraw();
+				current_x = 0;
+				current_y = 0;			
+				current_z = 0;
+				move_direction = '';
+				aQueuedMoves = new Array();
+				lastRoom = null;
+	  		}
+	  	}  		
 	
 	
 		public function newPath(aNewPath : Array) : void {
@@ -122,10 +172,9 @@ package com.simian.mapper {
 				var aNewPath : Array = shortestPath(current_room,selected_room);				
 				
 				if (shortestPath != null) {
-					
-					errorMessage('shortest path is ' + aNewPath.toString());
-					newPath(aNewPath);
-					stepPath();					
+
+					newPath(aNewPath);					
+					if (bAutoMove) stepPath();					
 					
 				} else if (verbose) errorMessage('no path to selected room available');
 				
@@ -185,6 +234,7 @@ package com.simian.mapper {
 			
 			// reset the move direction
 			move_direction = '';
+			aQueuedMoves = new Array();
 			
 			for each ( var searchMap : Map in aMaps ) {
 						
@@ -199,7 +249,7 @@ package com.simian.mapper {
 			 		current_room.redraw();			
 					
 					current_room = thisRoom;
-					current_layer = oMap.oRooms[current_room.room_z];
+										
 					lastRoom = current_room;
 					current_x = thisRoom.room_x;
 					current_y = thisRoom.room_y;
@@ -235,30 +285,28 @@ package com.simian.mapper {
 		public function checkLine(text:String) : void {
 			
 			var oExitCheck : Object = exitingRegExp.exec(text);
-			
-			
+						
 			if (oExitCheck != null) {
 				
-				if (move_direction.length != 0){
-					if (move_direction != 'Error') {
-						if( this.bMappingEnabled) {
-							errorMessage('Detected move ' + oExitCheck[2] + ' while we were still processing a move ' + move_direction );
-							move_direction = 'Error';
-						}
-					}
-				} else {
-					// don't want it matching 'You stand up.' or 'You wake up.'
+				if (move_direction != 'Error') {
+					// don't want it matching 'You stand up.' or 'You wake up.'	
 					if (oExitCheck[1].toLowerCase() != 'stand' && oExitCheck[1].toLowerCase() != 'wake'){
-						move_direction = oExitCheck[2];	
-						move(move_direction);																		
-					}
-				}
+						if (move_direction.length != 0){
+							aQueuedMoves.push(oExitCheck[2]);	
+						} else {
+							move_direction = oExitCheck[2];	
+							move(move_direction);
+						}
+					} 
+					
+					if (verbose) errorMessage('exited : ' + oExitCheck[2] );
 				
-				if (verbose) errorMessage('exited : ' + oExitCheck[2] );
+					if (bAutoMove && aPath.length > 0) stepPath();						
+				}
+					
 			}
 			
 		} 
-
 		
 		public function nextMoveDirection(direction:String) : void {			
 			move_direction = direction;
@@ -286,13 +334,13 @@ package com.simian.mapper {
 		// scans a block of text for room info
 		public function checkBlock(text:String) : void {
 						
-			var oRoomCheck : Object = roomRegExp.exec(text);
+			var oRoomCheck : Object; 
 			
 			// if this block contains a room...
-			if (oRoomCheck != null) {
-			
+			while (oRoomCheck = roomRegExp.exec(text)) {
+				
 				var expectedRoom : Room = oMap.getRoom(current_x,current_y,current_z);
-				var newRoom : Room = new Room(oRoomCheck[1],oRoomCheck[2],oRoomCheck[3],oRoomCheck[4],oRoomCheck[5],current_x,current_y,current_z);
+				var newRoom : Room = new Room(oMap,oRoomCheck[1],oRoomCheck[2],oRoomCheck[3],oRoomCheck[4],oRoomCheck[5],current_x,current_y,current_z);
 				
 				// if this is a new room add it to the matrix
 				// if there was a room here already make sure it's this room then switch to it...				
@@ -304,8 +352,10 @@ package com.simian.mapper {
 					}
 					
 				} else{
-					if ( ! newRoom.match_room(expectedRoom) ) errorMessage('moved but not to where we expected' );
-					else newRoom = expectedRoom;									
+					if ( ! newRoom.match_room(expectedRoom) ){
+						errorMessage('moved but not to where we expected' );
+						move_direction = 'Error'
+					} else newRoom = expectedRoom;									
 				}			
 								
 				// if this is the first room in the map then make it so!
@@ -329,7 +379,13 @@ package com.simian.mapper {
 					}
 					
 					// now that we have processed the move reset move_direction;
-					move_direction = '';
+					// if another move is already queued (as there can potentially be multiple moves in the same block)
+					// process the next move too
+					if (aQueuedMoves.length > 0 && move_direction != 'Error') {												
+						move_direction = aQueuedMoves[0];
+						move(move_direction);	
+						aQueuedMoves = aQueuedMoves.slice(1);
+					} else move_direction = '';
 
 
 				
@@ -338,8 +394,7 @@ package com.simian.mapper {
 					// check the detected room vs the current room
 					// to see if they've changed rooms without moving!
 					if ( ! newRoom.match_room(current_room) ){
-						errorMessage('room change detected but no move direction was noticed!' );
-						
+						errorMessage('room change detected but no move direction was noticed!' );						
 					} 
 						 
 				} 
@@ -362,7 +417,6 @@ package com.simian.mapper {
 			 		current_room.redraw();
 
 				}
-
 								
 				if (verbose) errorMessage('room detected : ' + newRoom.room_name );
 			}
