@@ -28,7 +28,7 @@ package com.simian.profile {
 		// local shared object data
 		private var localData : SharedObject;
 		
-		private static const PROFILE_VERSION : String = "0.000006f";
+		private static const PROFILE_VERSION : String = "0.000006g";
 		
 		private var dispatcher : Dispatcher = new Dispatcher();
 
@@ -232,20 +232,18 @@ package com.simian.profile {
 			while (aDelayedImportQueue.length) {
 				var thisImport : DelayedImport = aDelayedImportQueue.pop();								
 				thisImport.destObj[thisImport.destProp] = importObject(thisImport.oIn,thisImport.oInClass,objectLookup,aDelayedImportQueue);
-			}
-			
-			aDelayedImportQueue = null;
-		
+			}					
 
 			// remove any redundant trigger groups
 			removeEmptyGroups();
+			
+			// clear the object lookup object now we are done
+			objectLookup = null;
+			aDelayedImportQueue = null;
 
         	// send event to restore main telnet window (to loaded state)
 			mdiEvent = new WindowEvent(WindowEvent.OPEN_TELNET_WINDOW);							
 			dispatcher.dispatchEvent(mdiEvent);
-			
-			// clear the object lookup object now we are done
-			objectLookup = null;
 			
 		}
 		
@@ -266,6 +264,10 @@ package com.simian.profile {
 			if (oOut == null) {			
 				
 				oOut = new classIn();
+				
+				// could replace with these...
+				// var className:String = flash.utils.getQualifiedClassName( yourObject );
+				// var objectClass:Class = flash.utils.getDefinitionByName( className ) as Class;
 				
 				var classInfo:XML = describeType(oOut); 
 				
