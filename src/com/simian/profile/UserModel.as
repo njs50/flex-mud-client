@@ -288,7 +288,7 @@ package com.simian.profile {
 				var classInfo:XML = describeType(oOut); 
 				
 				
-				for each (var v:XML in classInfo..variable) {
+				for each (var v:XML in (classInfo..variable,classInfo..accessor)) {
 					
 					var propName : String = v.@name; 
 					var propType : String = v.@type;
@@ -303,22 +303,28 @@ package com.simian.profile {
 						// i'm sure theres a better way to do this...
 						if (propType.length > 14) {														
 							if (thisProp != null){
-								// check dictionary for this class
+								// check dictionary for this class (if it's not a simian type then just process as a primitive)
+								var bSimian : Boolean = false;
 								var c : Class = objectLookup[propType];
 								// otherwise figure it out from the object (this is going to die horribly if it isn't com.simian...)
 								if (c == null) {
 									var oType : Object = typeRegexp.exec(propType);
-									c = getClassByAlias('com.simian.' + oType[1] + '.' + oType[2]);
-									objectLookup[propType] = c;	
+									if (oType != null){
+										bSimian = true;
+										c = getClassByAlias('com.simian.' + oType[1] + '.' + oType[2]);
+										objectLookup[propType] = c;
+									}	
 								}
-								// this has the potential to cause recursive badness. 
-								// might have to put this into a queue to process later 
 								
-								oOut[propName] = objectLookup[thisProp];
+								if (bSimian) {
 								
-								if (oOut[propName] == null && thisProp != null) {											
-									aDelayedImportQueue.push(new DelayedImport(oOut,propName,thisProp,c));
-								}
+									oOut[propName] = objectLookup[thisProp];
+									
+									if (oOut[propName] == null && thisProp != null) {											
+										aDelayedImportQueue.push(new DelayedImport(oOut,propName,thisProp,c));
+									}
+									
+								} else oOut[propName] = thisProp;
 								
 							}
 							
