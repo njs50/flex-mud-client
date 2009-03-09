@@ -3,13 +3,21 @@ package com.simian.mapper {
 	import com.asfusion.mate.events.Dispatcher;
 	import com.simian.telnet.TelnetEvent;
 	
+	import flash.display.Sprite;
+	import flash.utils.Dictionary;
+	
 	[Bindable]
 	public class MapperModel {
 	
 		// Bindable public vars...
-		public var verbose : Boolean = false;	
-		public var oMap : Map;
+		public var oMap : Map = new Map('temporary map');
 		public var current_room : Room;
+				
+		public var dictMapLayerSprites : Dictionary = new Dictionary();		
+		public var dictRoomSprites : Dictionary = new Dictionary();
+		
+		public var verbose : Boolean = false;	
+		
 		public var lastRoom : Room;
 		
 		public var bMappingEnabled : Boolean = false;
@@ -48,8 +56,109 @@ package com.simian.mapper {
 		}
 	
 	
+	
+		public function getLayerSprite(layer : MapLayer) : Sprite {
+			
+			if (layer != null) {
+			
+				var layerSprite : Sprite = dictMapLayerSprites[layer];
+				
+				// if this layer doesn't have a sprite setup yet do it!
+				if (layerSprite == null){
+					
+					layerSprite = new Sprite();			
+					for each (var yLayer : Object in layer.oRooms) {				
+						for each (var oRoom : Room in yLayer) {					
+							var thisSprite : Sprite = oRoom.getSprite(); 
+							dictRoomSprites[oRoom] = thisSprite;
+							layerSprite.addChild(thisSprite);							 					
+						}  
+					}																				
+					dictMapLayerSprites[layer] = layerSprite;
+				}			
+				
+				return layerSprite;
+			} 
+			
+			return null;
+			
+		}
+		
+		
+		public function addRoom(i_x:int,i_y:int,i_z:int, room: Room) : void {
+			
+			oMap.setRoom(i_x,i_y,i_z,room);
+			
+			var thisLayer : MapLayer = oMap.oRooms[i_z];			
+			var layerSprite : Sprite = getLayerSprite(thisLayer);
+			var thisSprite : Sprite = room.getSprite(); 
+			
+			dictRoomSprites[room] = thisSprite;
+			layerSprite.addChild(thisSprite);
+			
+		}
+		
+		public function removeRoom(oRoom:Room) : void {
+			
+			var thisLayer : MapLayer = oMap.oRooms[oRoom.room_z];			
+			var layerSprite : Sprite = getLayerSprite(thisLayer);			
+			var thisSprite : Sprite = dictRoomSprites[oRoom];
+			
+			// remove the sprite from dict and sprite
+			layerSprite.removeChild(thisSprite);
+			dictRoomSprites[oRoom] = null;
+
+			// loop through any rooms this one is linked to and remove it as an exit
+			for each (var exit : Exit in oRoom.room_aExits ) {
+				if (exit.room != null) removeExitFromRoom(oRoom,exit.room.room_x,exit.room.room_y,exit.room.room_z);
+			}
+			
+			// also make sure none of the adjacent rooms have this room as an exit (one way)
+			removeExitFromRoom(oRoom,oRoom.room_x+1,oRoom.room_y,oRoom.room_z);		
+			removeExitFromRoom(oRoom,oRoom.room_x-1,oRoom.room_y,oRoom.room_z);
+			removeExitFromRoom(oRoom,oRoom.room_x,oRoom.room_y+1,oRoom.room_z);
+			removeExitFromRoom(oRoom,oRoom.room_x,oRoom.room_y-1,oRoom.room_z);
+			removeExitFromRoom(oRoom,oRoom.room_x,oRoom.room_y,oRoom.room_z+1);
+			removeExitFromRoom(oRoom,oRoom.room_x,oRoom.room_y,oRoom.room_z-1);					
+		
+			// finally kill the room
+			delete thisLayer.oRooms[oRoom.room_y][oRoom.room_x];						
+			
+		}
+		
+		// if a room exists at this location run it's removeExit
+		private function removeExitFromRoom(oRoom : Room,x:int,y:int,z:int) : void {						
+			var adjacentRoom : Room = oMap.getRoom(x,y,z);			
+			var bChange : Boolean = false;						
+			if (adjacentRoom != null) {
+				var aNewExits : Array = new Array();				
+				for each (var exit : Exit in adjacentRoom.room_aExits ) {
+					if ( exit.room == oRoom ) {
+						exit.room = null;
+						aNewExits.push(exit);
+						bChange = true;
+					} else {
+						aNewExits.push(exit);
+					}
+				}				
+				if (bChange) {						
+					adjacentRoom.room_aExits = aNewExits;
+					redrawRoom(adjacentRoom);
+				}				
+			} 			
+		}		
+
+		
+		
+		public function redrawRoom(room:Room) : void {
+			if (room != null) dictRoomSprites[room] = room.getSprite(dictRoomSprites[room],(room == selected_room),(room == current_room));			
+		}
+		
+	
 	  	public function newMap(mapname:String) : void {
 	  		// make sure they've entered a name for this new map
+	  		
+	  		if (aMaps == null) aMaps = new Array();
 	  		
 	  		if (aMaps.length == 0 ) {
 
@@ -82,33 +191,40 @@ package com.simian.mapper {
 				
 				// add exit stubs for any exits on the parent room			
 				for each (var oExit : Exit in oldLinkRoom.room_aExits) newLinkRoom.room_aExits.push(new Exit(oExit.direction));
-					
-				
-				// add room to map
-				oNewMap.setRoom(0,0,0,newLinkRoom);
-				
+									
 				// change model details (back to defaults!)
-				oMap = oNewMap;
-				lastRoom = current_room;
-	 			lastRoom.bCurrentroom = false;
-	 			lastRoom.redraw(); 								
-				current_room = newLinkRoom;
-				current_room.bCurrentroom = true;
-				current_room.redraw();
+				oMap = oNewMap;				
 				current_x = 0;
 				current_y = 0;			
 				current_z = 0;
 				move_direction = '';
 				aQueuedMoves = new Array();
 				lastRoom = null;
+
+				// add room to map
+				addRoom(0,0,0,newLinkRoom);
+				
+				setCurrentRoom(newLinkRoom);
+				
 	  		}
 	  	}  		
 	
 	
+		public function setCurrentRoom(room:Room) : void {
+			if (current_room != null) {
+				lastRoom = current_room;
+				dictRoomSprites[lastRoom] = lastRoom.getSprite(dictRoomSprites[lastRoom],(lastRoom == selected_room),false);
+			}
+			current_room = room;
+			dictRoomSprites[current_room] = current_room.getSprite(dictRoomSprites[current_room],(current_room == selected_room),true);
+		}
+	
 		public function newPath(aNewPath : Array) : void {
-			this.aPath = aNewPath.reverse();
-			this.lastPathStep = '';
-			this.aPathBehind = new Array();
+			if (aNewPath != null && aNewPath.length > 0) {
+				this.aPath = aNewPath.reverse();
+				this.lastPathStep = '';
+				this.aPathBehind = new Array();
+			}
 		}
 		
 	
@@ -152,14 +268,13 @@ package com.simian.mapper {
 		public function selectRoom(room : Room) : void {
 			// trace('someone clicked ::: ' + room.room_name);
 			
-			if (selected_room != null) {
-				selected_room.bSelected = false;
-				selected_room.redraw();				
+			if (selected_room != null) {								
+				dictRoomSprites[selected_room] = selected_room.getSprite(dictRoomSprites[selected_room],false,(selected_room == current_room));				
 			}
 			
 			selected_room = room;
-			selected_room.bSelected = true;
-			selected_room.redraw();		
+			
+			dictRoomSprites[selected_room] = selected_room.getSprite(dictRoomSprites[selected_room],true,(selected_room == current_room));			
 			
 		}
 		
@@ -244,26 +359,13 @@ package com.simian.mapper {
 					
 					oMap = searchMap;
 					
-			 		// deselect the current room
-			 		current_room.bCurrentroom = false;
-			 		current_room.redraw();			
-					
-					current_room = thisRoom;
-										
+					setCurrentRoom(thisRoom);															
 					lastRoom = current_room;
+					
 					current_x = thisRoom.room_x;
 					current_y = thisRoom.room_y;
-					current_z = thisRoom.room_z;
-					
-					// select the new current room
-			 		current_room.bCurrentroom = true;
-			 		current_room.redraw();
-	
-					// despatch a room change event to let the viewer know we have moved
-			    	var mEvent : MapperEvent;       	
-					mEvent = new MapperEvent(MapperEvent.CHANGE_ROOM);        				
-					dispatcher.dispatchEvent(mEvent);					
-					
+					current_z = thisRoom.room_z;										
+						
 					// our work here is done, we are found...
 					return;
 				
@@ -334,7 +436,7 @@ package com.simian.mapper {
 		// scans a block of text for room info
 		public function checkBlock(text:String) : void {
 						
-			var oRoomCheck : Object; 
+			var oRoomCheck : Object;  
 			
 			// if this block contains a room...
 			while (oRoomCheck = roomRegExp.exec(text)) {
@@ -348,7 +450,7 @@ package com.simian.mapper {
 
 					// if mapping is enabled add to the room matrix
 					if (bMappingEnabled) {	
-						oMap.setRoom(current_x,current_y,current_z,newRoom);
+						addRoom(current_x,current_y,current_z,newRoom);
 					}
 					
 				} else{
@@ -400,22 +502,8 @@ package com.simian.mapper {
 				} 
 
 				// if the room has changed update things here
-				if ( ! newRoom.match_room(current_room) ) {
-				
-					// update the last/current room pointer
-					lastRoom = current_room;
-					current_room = newRoom;
-
-			 		// deselect the last room (if there was one)
-			 		if (lastRoom != null) {
-			 			lastRoom.bCurrentroom = false;
-			 			lastRoom.redraw(); 			
-			 		}
-	
-			 		// select the new room
-			 		current_room.bCurrentroom = true;
-			 		current_room.redraw();
-
+				if ( ! newRoom.match_room(current_room) ) {								
+					setCurrentRoom(newRoom);				
 				}
 								
 				if (verbose) errorMessage('room detected : ' + newRoom.room_name );

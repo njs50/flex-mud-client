@@ -8,7 +8,7 @@ package com.simian.mapper
 	
 	
 	[RemoteClass(alias="com.simian.mapper.Room")]			
-	public class Room extends Sprite
+	public class Room 
 	{
 		
 		// size of sprite 
@@ -32,18 +32,13 @@ package com.simian.mapper
 		public var room_z : int;
 		
 		public var travel_cost : int = 1;
-				
-		public var bCurrentroom : Boolean = false;		
-		public var bSelected : Boolean = false;
-		
+						
 		private var dispatcher : Dispatcher = new Dispatcher();
 		
-		public function Room(_map:Map, _name:String = '',exits_string:String = '',_line1:String = '',_line2:String = '',_line3:String = '', _x : int = 0, _y : int = 0, _z:int = 0, _aExits:Array = null)
+		public function Room(_map:Map = null, _name:String = '',exits_string:String = '',_line1:String = '',_line2:String = '',_line3:String = '', _x : int = 0, _y : int = 0, _z:int = 0, _aExits:Array = null)
 		{
 
 			// set default properties.
-			this.doubleClickEnabled = true;
-			this.mouseChildren = false;
 
 			oMap = _map;			
 			
@@ -65,16 +60,7 @@ package com.simian.mapper
 			
 			while (oExits = exitsRegexp.exec(exits_string)) {
 				addExit(oExits[1],null);
-			}
-			
-			// add an event handler for if someone clicks on us
-			addEventListener(MouseEvent.CLICK,clickHandler);
-			addEventListener(MouseEvent.DOUBLE_CLICK,doubleclickHandler);
-			addEventListener(MouseEvent.MOUSE_OVER,mouseOverHandler);
-			
-			
-			// draw us a sprite
-			redraw();
+			}			
 			
 		}
 
@@ -110,36 +96,61 @@ package com.simian.mapper
 
 		public function redraw() : void	{
 
-			var midpoint : int = (sprite_area + 1) / 2;
-			var length: int = sprite_area - (join_size * 2);
-			
-			// clear the sprite...			
-			this.graphics.clear();
-			
-			this.scaleX = 1;
-			this.scaleY = 1;
-			
-			
-			// change border colour if this is selected
-			if (this.bCurrentroom){				
-				this.graphics.lineStyle(1,0xff0000);				
-			}else {				
-				this.graphics.lineStyle(1,0x000000);				
-			}						
+			// depricated
+				
+		}
 
-			// add in the room box	
-			this.graphics.beginFill(0x00ff00);			
-			this.graphics.drawRect(join_size,join_size,length,length);			
-			this.graphics.endFill();
+
+		public function getSprite(recycleSprite : Sprite = null, bSelected:Boolean = false, bCurrentroom : Boolean = false) : Sprite {
 			
-			// draw a box round it if it's selected
-			if (this.bSelected) {
-				this.graphics.lineStyle(1,0x0000ff);
-				this.graphics.drawRect(join_size - 1,join_size - 1,length + 2,length + 2);									
+			var thisSprite : Sprite			
+								
+			if (recycleSprite == null) {
+				thisSprite = new Sprite();	
+				
+				// set mouse event settings
+				thisSprite.doubleClickEnabled = true;
+				thisSprite.mouseChildren = false;
+				
+				// add an event handler for if someone clicks on us
+				thisSprite.addEventListener(MouseEvent.CLICK,clickHandler);
+				thisSprite.addEventListener(MouseEvent.DOUBLE_CLICK,doubleclickHandler);
+				thisSprite.addEventListener(MouseEvent.MOUSE_OVER,mouseOverHandler);				
+								
+			} else {
+				thisSprite = recycleSprite;
+				thisSprite.graphics.clear();
 			}
 			
 			
-			this.graphics.lineStyle(1,0x000000);
+			
+			var midpoint : int = (sprite_area + 1) / 2;
+			var length: int = sprite_area - (join_size * 2);			
+			
+			thisSprite.scaleX = 1;
+			thisSprite.scaleY = 1;
+			
+			
+			// change border colour if this is selected
+			if (bCurrentroom){				
+				thisSprite.graphics.lineStyle(1,0xff0000);				
+			}else {				
+				thisSprite.graphics.lineStyle(1,0x000000);				
+			}						
+
+			// add in the room box	
+			thisSprite.graphics.beginFill(0x00ff00);			
+			thisSprite.graphics.drawRect(join_size,join_size,length,length);			
+			thisSprite.graphics.endFill();
+			
+			// draw a box round it if it's selected
+			if (bSelected) {
+				thisSprite.graphics.lineStyle(1,0x0000ff);
+				thisSprite.graphics.drawRect(join_size - 1,join_size - 1,length + 2,length + 2);									
+			}
+			
+			
+			thisSprite.graphics.lineStyle(1,0x000000);
 
 			// draw in any exits
 			for each (var exit : Exit in this.room_aExits ) {
@@ -153,58 +164,57 @@ package com.simian.mapper
 				switch (exit.direction) {
 				
 					case 'north':
-						this.graphics.moveTo(midpoint,join_size);
-						this.graphics.lineTo(midpoint,0 + join_gap);
+						thisSprite.graphics.moveTo(midpoint,join_size);
+						thisSprite.graphics.lineTo(midpoint,0 + join_gap);
 					break;
 	
 					case 'west':
-						this.graphics.moveTo(join_size,midpoint);
-						this.graphics.lineTo(0 + join_gap,midpoint);												
+						thisSprite.graphics.moveTo(join_size,midpoint);
+						thisSprite.graphics.lineTo(0 + join_gap,midpoint);												
 					break;
 	
 					case 'south':
-						this.graphics.moveTo(midpoint,sprite_area - join_size);
-						this.graphics.lineTo(midpoint,sprite_area - join_gap);						
+						thisSprite.graphics.moveTo(midpoint,sprite_area - join_size);
+						thisSprite.graphics.lineTo(midpoint,sprite_area - join_gap);						
 					break;
 	
 					case 'east':
-						this.graphics.moveTo(sprite_area - join_size,midpoint);
-						this.graphics.lineTo(sprite_area - join_gap,midpoint);						
+						thisSprite.graphics.moveTo(sprite_area - join_size,midpoint);
+						thisSprite.graphics.lineTo(sprite_area - join_gap,midpoint);						
 					break;
 	
 					case 'up':
 						startPoint = join_size + 5;
-						if (exit.room != null) this.graphics.beginFill(0x000000);
-						this.graphics.moveTo(startPoint,startPoint - 3);
-						this.graphics.lineTo(startPoint + 3, startPoint + 1);
-						this.graphics.lineTo(startPoint - 3, startPoint + 1);
-						this.graphics.lineTo(startPoint, startPoint - 3);
-						if (exit.room != null) this.graphics.endFill();
+						if (exit.room != null) thisSprite.graphics.beginFill(0x000000);
+						thisSprite.graphics.moveTo(startPoint,startPoint - 3);
+						thisSprite.graphics.lineTo(startPoint + 3, startPoint + 1);
+						thisSprite.graphics.lineTo(startPoint - 3, startPoint + 1);
+						thisSprite.graphics.lineTo(startPoint, startPoint - 3);
+						if (exit.room != null) thisSprite.graphics.endFill();
 					break;
 	
 					case 'down':
 						startPoint = sprite_area - join_size - 5;
-						if (exit.room != null) this.graphics.beginFill(0x000000);
-						this.graphics.moveTo(startPoint,startPoint + 3);
-						this.graphics.lineTo(startPoint + 3, startPoint - 1);
-						this.graphics.lineTo(startPoint - 3, startPoint - 1);
-						this.graphics.lineTo(startPoint, startPoint + 3);	
-						if (exit.room != null) this.graphics.endFill();					
+						if (exit.room != null) thisSprite.graphics.beginFill(0x000000);
+						thisSprite.graphics.moveTo(startPoint,startPoint + 3);
+						thisSprite.graphics.lineTo(startPoint + 3, startPoint - 1);
+						thisSprite.graphics.lineTo(startPoint - 3, startPoint - 1);
+						thisSprite.graphics.lineTo(startPoint, startPoint + 3);	
+						if (exit.room != null) thisSprite.graphics.endFill();					
 					break;
 				
 				}
-
-
-				
 	
 			}
 			
 			// position the room in the map...			
-			this.x = this.room_x * sprite_area;
-			this.y = this.room_y * sprite_area * -1;
-		
+			thisSprite.x = this.room_x * sprite_area;
+			thisSprite.y = this.room_y * sprite_area * -1;						
+			
+			return thisSprite;
+			
 		}
-
+	
 
 
 		public function match_room(room1:Room) : Boolean {
@@ -234,34 +244,12 @@ package com.simian.mapper
 			
 			if (!bExists) {
 				var newExit : Exit = new Exit(direction,to_room,direction);
-				this.room_aExits.push(newExit); 				
-				// update the sprite (if this isn't being called from the contructor i.e untested exit)
-				if (to_room != null) redraw();
+				this.room_aExits.push(newExit); 												
 			}
 			
 		}
 		
-		// sets the exit back to being a stub. 
-		public function removeExit(direction : String = '', to_room : Room = null) : void {
-			
-			var aNewExits : Array = new Array();
-			
-			for each (var exit : Exit in this.room_aExits ) {
-				if (direction != '' && exit.direction == direction) {	
-					exit.room = null;
-					aNewExits.push(exit);
-				} else if ( to_room != null && exit.room == to_room ) {
-					exit.room = null;
-					aNewExits.push(exit);
-				} else {
-					aNewExits.push(exit);
-				}
-			}
-						
-			this.room_aExits = aNewExits;
-			this.redraw();
 
-		}
 		
 
 	}

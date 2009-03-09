@@ -9,39 +9,13 @@ package com.simian.mapper
 	{		
 		// room arrays (x/y) for this layer		
 		public var oRooms : Object;
-		
-		// sprite representing this layer of the map
-		[Bindable]
-		public var mapSprite : Sprite;
-		
+						
 		private var dispatcher : Dispatcher = new Dispatcher();
 		
 		
 		public function MapLayer()
 		{
-			oRooms = new Object();
-			mapSprite = new Sprite();
-		}
-
-		
-		
-		public function addRoom(oRoom:Room) : void {			
-			// add this room if it isn't already there... 		
-	 		if (! mapSprite.contains(oRoom) ) mapSprite.addChild(oRoom);			
-		}
-		
-		public function removeRoom(oRoom:Room) : void {
-			// remove this room if it exits
-			if ( mapSprite.contains(oRoom) ) mapSprite.removeChild(oRoom);
-		}
-
-		
-		public function setActiveLayer(): void {
-			// broadcast that we have changed layers        	
-        	var mEvent : MapperEvent;       	
-			mEvent = new MapperEvent(MapperEvent.CHANGE_LAYER);        			
-			dispatcher.dispatchEvent(mEvent);
-								
+			oRooms = new Object();			
 		}
 
 

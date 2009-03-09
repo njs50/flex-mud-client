@@ -13,14 +13,13 @@ package com.simian.mapper
 	public class MapView extends ScrollControlBase
 	{		
  
+		public var oMapModel : MapperModel;
+
+		public var last_room : Room;
+
 		private var map : Map; 		
 		private var mapSprite : Sprite;		
 		private var current_layer_sprite : Sprite;	 
-
-		
-		public var current_room : Room;
-
-		public var last_room : Room;
 
 
 		public function MapView()
@@ -63,26 +62,26 @@ package com.simian.mapper
 		public function changeRoom() : void {		
 			
 			// don't do anything if we dont have at least one room
-			if (current_room != null) {				
+			if (oMapModel.current_room != null) {				
 				
 				var bChangeSprite : Boolean = false;
 
 				// make sure we are still on the right map, if we've changed then update the layer
-				if (map != current_room.oMap) {
-					map = current_room.oMap;
+				if (map != oMapModel.current_room.oMap) {
+					map = oMapModel.current_room.oMap;
 					bChangeSprite = true;	
 				}
 				
 				// if the layer has changed update the layer
 				if (last_room != null) {			
-					if (current_room.room_z != last_room.room_z) bChangeSprite = true;				
+					if (oMapModel.current_room.room_z != last_room.room_z) bChangeSprite = true;				
 				} else bChangeSprite = true;
 								
 			
 				// if it's time to change our map layer sprite...
-				if (bChangeSprite) {
+				if (bChangeSprite || current_layer_sprite == null) {
 					if (current_layer_sprite != null) mapSprite.removeChild(current_layer_sprite);													
-					current_layer_sprite = current_room.oMap.oRooms[current_room.room_z].mapSprite
+					current_layer_sprite = oMapModel.getLayerSprite(oMapModel.current_room.oMap.oRooms[oMapModel.current_room.room_z]); 					
 					mapSprite.addChild(current_layer_sprite);						
 				}
 
@@ -90,7 +89,7 @@ package com.simian.mapper
 				centerMap();	
 				
 				// update the last room ref			
-				last_room = current_room;
+				last_room = oMapModel.current_room;
 			
 			}			
 			
@@ -100,7 +99,7 @@ package com.simian.mapper
 
 
         private function resizeHandler(event:Event) : void{			
-			if (current_layer_sprite != null && current_room != null) centerMap();       	
+			if (current_layer_sprite != null && oMapModel.current_room != null) centerMap();       	
         }
 
 
@@ -152,14 +151,20 @@ package com.simian.mapper
 			if (current_layer_sprite == null) changeRoom();
 			
 			// calc our current x and y relative to the sprites position
-			var current_x : int = mapSprite.x + current_room.x;
-			var current_y : int = mapSprite.y + current_room.y;
 			
-			// if we are outside the middle half of the screen reposition that axis		
-			if(	current_x < (this.internal_width * 0.25) || current_x > (this.internal_width * 0.75) ) mapSprite.x = (this.internal_width / 2) - current_room.x;
-			if(	current_y < (this.internal_height * 0.25) || current_y > (this.internal_height * 0.75) ) mapSprite.y = (this.internal_height / 2) - current_room.y ;						  
+			var roomSprite : Sprite = oMapModel.dictRoomSprites[oMapModel.current_room];
 			
-			resizeScrollBars();
+			// don't center the map if the current room isn't even on the map yet :p
+			if (roomSprite != null) {		
+				var current_x : int = mapSprite.x + roomSprite.x;
+				var current_y : int = mapSprite.y + roomSprite.y;
+				
+				// if we are outside the middle half of the screen reposition that axis		
+				if(	current_x < (this.internal_width * 0.25) || current_x > (this.internal_width * 0.75) ) mapSprite.x = (this.internal_width / 2) - roomSprite.x;
+				if(	current_y < (this.internal_height * 0.25) || current_y > (this.internal_height * 0.75) ) mapSprite.y = (this.internal_height / 2) - roomSprite.y ;						  
+				
+				resizeScrollBars();
+			}
 					
 		}
 
