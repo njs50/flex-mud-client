@@ -221,11 +221,10 @@ package com.simian.profile {
 			var mdiEvent : WindowEvent = new WindowEvent(WindowEvent.CLOSE_WINDOWS);							
 			dispatcher.dispatchEvent(mdiEvent);	  
 
-        	if (configObj.hasOwnProperty('aTriggerGroup') && configObj.aTriggerGroup) {      
-        		// if (configObj.aTriggerGroup.length > 0 && configObj.aTriggerGroup.getItemAt(0).hasOwnProperty('data') ) 
+        	if (configObj.hasOwnProperty('aTriggerGroup') && configObj.aTriggerGroup) {              		 
         		configObj.aTriggerGroup.removeItemAt(0);  		        		     		
-        		this.aTriggerGroup.source = importArray(configObj.aTriggerGroup.source,TriggerGroup,objectLookup,aDelayedImportQueue);        		        		        		
-        	}
+        		this.aTriggerGroup = new ArrayCollection(importArray(configObj.aTriggerGroup.source,TriggerGroup,objectLookup,aDelayedImportQueue));        		        		        		
+        	}        	
 
         	if (configObj.hasOwnProperty('aMaps') && configObj.aMaps)
         		aMaps = importArray(configObj.aMaps,Map,objectLookup,aDelayedImportQueue);        	
@@ -238,8 +237,7 @@ package com.simian.profile {
         	
         	if (configObj.hasOwnProperty('aTrigger') && configObj.aTrigger)
         		aTrigger = new ArrayCollection(importArray(configObj.aTrigger.source,Trigger,objectLookup,aDelayedImportQueue));
-        	
-        	
+         	
         	if (configObj.hasOwnProperty('telnetSettings') && configObj.telnetSettings) {
         		telnetSettings = importObject(configObj.telnetSettings, TelnetSettings,objectLookup,aDelayedImportQueue) as TelnetSettings;
         	}						
@@ -285,10 +283,10 @@ package com.simian.profile {
 				// var className:String = flash.utils.getQualifiedClassName( yourObject );
 				// var objectClass:Class = flash.utils.getDefinitionByName( className ) as Class;
 				
-				var classInfo:XML = describeType(oOut); 
+				var classInfo:XML = describeType(oOut); 				
+				var props : XMLList = classInfo..variable + classInfo..accessor;
 				
-				
-				for each (var v:XML in (classInfo..variable,classInfo..accessor)) {
+				for each (var v:XML in props) {
 					
 					var propName : String = v.@name; 
 					var propType : String = v.@type;
@@ -301,7 +299,8 @@ package com.simian.profile {
 						// not going to be any primitive type i can think of bigger than this length
 						// currently only support embedded com.simian objects
 						// i'm sure theres a better way to do this...
-						if (propType.length > 14) {														
+						if (propType.length > 14) {		
+																			
 							if (thisProp != null){
 								// check dictionary for this class (if it's not a simian type then just process as a primitive)
 								var bSimian : Boolean = false;
@@ -314,7 +313,7 @@ package com.simian.profile {
 										c = getClassByAlias('com.simian.' + oType[1] + '.' + oType[2]);
 										objectLookup[propType] = c;
 									}	
-								}
+								} else bSimian = true;
 								
 								if (bSimian) {
 								
@@ -324,19 +323,23 @@ package com.simian.profile {
 										aDelayedImportQueue.push(new DelayedImport(oOut,propName,thisProp,c));
 									}
 									
-								} else oOut[propName] = thisProp;
+								} else oOut[propName] = thisProp; // not a simian type, no need to parse or delay
 								
 							}
 							
-						} else {
+						} else { // primitive type, don't bother checking cache
 							oOut[propName] = thisProp;	
 						}
 												
 						
-					}					 
-				}										
+					} // end if (oIn has this prop)
+										 
+				}	// end loop over each prop
+				
+				// store object in cache									
 				objectLookup[oIn] = oOut;
-			}			
+			}	
+					
 			return oOut;			
 		}
 

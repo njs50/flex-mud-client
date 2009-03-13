@@ -35,8 +35,7 @@
 		public var editor_alias : Alias;
 
 
-		private function init() : void {
-			aAliasClone.source = aAlias.source;
+		private function init() : void {			
 			applyFilter();
 		}
 
@@ -115,6 +114,7 @@
   		}
 
 		private function applyFilter() : void {		
+			aAliasClone.source = aAlias.source;
 			aAliasClone.filterFunction = listFilter;
 			aAliasClone.refresh();			
 		}

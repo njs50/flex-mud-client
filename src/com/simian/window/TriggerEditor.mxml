@@ -36,14 +36,13 @@
 				
 		public var editor_trigger : Trigger;
 		
-		private function init() : void {
-			aTriggerClone.source = aTrigger.source;
+		private function init() : void {			
 			applyFilter();
 		}
 	
 	
 		private function applyFilter() : void {
-			
+			aTriggerClone.source = aTrigger.source;
 			aTriggerClone.filterFunction = listFilter;
 			aTriggerClone.refresh();
 			
