@@ -428,6 +428,7 @@ package com.simian.mapper {
 		public function findMe() : void {
 			
 			// reset the move direction
+			
 			move_direction = '';
 			aQueuedMoves = new Array();
 			
@@ -452,6 +453,7 @@ package com.simian.mapper {
 				}
 			}			 
 			
+			setCurrentRoom(current_room);
 			
 			// if we've got this far then we didn't find the room in any of the maps
 			errorMessage('Your current room could not be found anywhere other than where you are now');
@@ -472,7 +474,7 @@ package com.simian.mapper {
 				
 				if (move_direction != 'Error') {
 					// don't want it matching 'You stand up.' or 'You wake up.'	
-					if (oExitCheck[1].toLowerCase() != 'stand' && oExitCheck[1].toLowerCase() != 'wake'){
+					if (oExitCheck[1].toLowerCase() != 'stand' && oExitCheck[1].toLowerCase() != 'wake' && oExitCheck[1].toLowerCase() != 'sit' && oExitCheck[1].toLowerCase() != 'jump' ){
 						if (move_direction.length != 0){
 							aQueuedMoves.push(oExitCheck[2]);	
 						} else {
@@ -557,11 +559,12 @@ package com.simian.mapper {
 				}			
 								
 				// if this is the first room in the map then make it so!
-				if (current_room == null) { current_room = newRoom; lastRoom = current_room; } 	
+				if (current_room == null) { current_room = newRoom; lastRoom = current_room;  } 	
 				
 				// if the mapper is in an error state do nothing (but taunt the user for fun) 
 				else if ( move_direction == 'Error' ) {
 					errorMessage('Mapping currently suspended due to error');
+					
 					// attempt to recover from the error if we are not mapping
 										
 				// if we have a pending move action then lets add this room to the map.
@@ -585,7 +588,7 @@ package com.simian.mapper {
 						aQueuedMoves = aQueuedMoves.slice(1);
 					} else move_direction = '';
 
-
+					
 				
 				// no move detected. maybe they are just lookin around.
 				} else {
@@ -596,11 +599,8 @@ package com.simian.mapper {
 					} 
 						 
 				} 
-
-				// if the room has changed update things here
-				if ( ! newRoom.match_room(current_room) ) {								
-					setCurrentRoom(newRoom);				
-				}
+				
+				setCurrentRoom(newRoom);
 								
 				if (verbose) errorMessage('room detected : ' + newRoom.room_name );
 			}

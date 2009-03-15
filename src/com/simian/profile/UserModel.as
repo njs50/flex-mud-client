@@ -30,7 +30,7 @@ package com.simian.profile {
 		// local shared object data
 		private var localData : SharedObject;
 		
-		private static const PROFILE_VERSION : String = "0.000006m";
+		private static const PROFILE_VERSION : String = "0.000006n";
 		
 		private var dispatcher : Dispatcher = new Dispatcher();
 
