@@ -26,13 +26,15 @@ package com.simian.mapper
 				for each (var zLayer : Object in oRooms ) {			
 					for each (var yLayer : Object in zLayer.oRooms) {					
 						for each (var testRoom : Room in yLayer) {						
-							if (oRoom.match_room(testRoom)) return testRoom;						
+							if (oRoom != testRoom && oRoom.match_room(testRoom)) return testRoom;						
 						}					
 					} 				
 				}			
 			}
 			return null;			
 		}
+		
+		
 		
 
 		public function getRoom(i_x:int,i_y:int,i_z:int) : Room {

@@ -92,6 +92,15 @@
   	private function renameMap() : void {
   		if (selected_map.inputText != null && selected_map.inputText.length > 0) oMapModel.oMap.map_name = selected_map.inputText;
   	}  	  
+  	
+  	private function joinMap() : void {
+  		oMapModel.linkMap();
+  	}
+  	
+  	private function mergeRoom() : void {
+  		oMapModel.mergeOtherRoom();
+  	}
+  	
   
   ]]>  
   </mx:Script>
@@ -108,6 +117,7 @@
 				<extended:EditableComboBox id="selected_map" width="100" change="mapChange()" dataProvider="{oMapModel.aMaps}" labelField="map_name" editable="true" xmlns:extended="com.simian.extendedComponents.*" />
 				<mx:Button label="New Map" click="newMap()" />
 				<mx:Button label="Rename Map" click="renameMap()" />
+				<mx:Button label="Join Map" click="joinMap()" />
 				<mx:Spacer width="100%" />
 				<mx:Button label="Delete Map" />		
 			</mx:HBox>
@@ -124,6 +134,7 @@
 				<mx:CheckBox label="Auto Mapping" selected="{oMapModel.bMappingEnabled}" id="bAutomap" click="oMapModel.bMappingEnabled=bAutomap.selected" />
 				<mx:CheckBox label="Auto Moving" selected="{oMapModel.bAutoMove}" id="autoMove" click="oMapModel.bAutoMove=autoMove.selected" />								
 				<mx:Button label="Find Room" click="find()" />
+				<mx:Button label="Merge Room" click="mergeRoom()" />
 				<mx:Spacer width="100%" />
 				<mx:Button label="Delete Room" click="deleteSelected()" />	
 			</mx:HBox>			

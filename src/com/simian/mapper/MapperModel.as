@@ -160,11 +160,11 @@ package com.simian.mapper {
 	  		
 	  		if (aMaps == null) aMaps = new Array();
 	  		
+	  		// if aMaps length is 0 this is the first map! (no need to link)
 	  		if (aMaps.length == 0 ) {
 
 				// create a new map
-				oMap = new Map(mapname);
-				
+				oMap = new Map(mapname);				
 				// add the new map to the array of maps
 				aMaps.push(oMap);
 	  			
@@ -178,21 +178,8 @@ package com.simian.mapper {
 				
 				var oldLinkRoom : Room = current_room;
 				var newLinkRoom : Room = new Room(oNewMap,current_room.room_name,'',current_room.room_line1,current_room.room_line2,current_room.room_line3,0,0,0);
-	
-				if (oldLinkRoom.aLinkedRooms == null) oldLinkRoom.aLinkedRooms = new Array();
-	
-				// add the parent (and it's linked rooms) as a link to this room						
-				newLinkRoom.aLinkedRooms = oldLinkRoom.aLinkedRooms.slice();
-				newLinkRoom.aLinkedRooms.push(oldLinkRoom);			
-				// add this room to the parents list of linked rooms
-				oldLinkRoom.aLinkedRooms.push(newLinkRoom);
-				// add this room to any other rooms linked to the parent
-				for each (var oRoom : Room in oldLinkRoom.aLinkedRooms) oRoom.aLinkedRooms.push(newLinkRoom);  						
-				
-				// add exit stubs for any exits on the parent room			
-				for each (var oExit : Exit in oldLinkRoom.room_aExits) newLinkRoom.room_aExits.push(new Exit(oExit.direction));
-									
-				// change model details (back to defaults!)
+													
+				// change model details (to switch to the new map)
 				oMap = oNewMap;				
 				current_x = 0;
 				current_y = 0;			
@@ -204,10 +191,65 @@ package com.simian.mapper {
 				// add room to map
 				addRoom(0,0,0,newLinkRoom);
 				
+				// set our current loc to be the new room
 				setCurrentRoom(newLinkRoom);
+
+				// link old and new rooms
+				LinkMapsByRoom(oldLinkRoom,newLinkRoom);				
 				
 	  		}
 	  	}  		
+	
+		private function LinkMapsByRoom(oldLinkRoom : Room, newLinkRoom : Room) : void {
+			
+			if (oldLinkRoom.aLinkedRooms == null) oldLinkRoom.aLinkedRooms = new Array();
+
+			// add the parent (and it's linked rooms) as a link to this room						
+			newLinkRoom.aLinkedRooms = oldLinkRoom.aLinkedRooms.slice();
+			newLinkRoom.aLinkedRooms.push(oldLinkRoom);			
+			// add this room to the parents list of linked rooms
+			oldLinkRoom.aLinkedRooms.push(newLinkRoom);
+			// add this room to any other rooms linked to the parent
+			for each (var oRoom : Room in oldLinkRoom.aLinkedRooms) oRoom.aLinkedRooms.push(newLinkRoom);  						
+			
+			// add exit stubs for any exits on the parent room			
+			for each (var oExit : Exit in oldLinkRoom.room_aExits) newLinkRoom.room_aExits.push(new Exit(oExit.direction));
+			
+			// redraw the now linked rooms
+			redrawRoom(newLinkRoom);			
+			redrawRoom(oldLinkRoom);
+			
+		}
+	
+		public function linkMap() : void {
+			
+			// loop through all maps and try and find this room in another one
+			for each ( var searchMap : Map in aMaps ) {
+				// ignore the current map
+				if (searchMap != oMap) { 
+											
+					var foundRoom : Room = searchMap.find(current_room);
+					
+					// if we found the room then we have work to do...
+					if (foundRoom != null) {
+						// check to see if these rooms are already linked
+						var bAlreadyLinked : Boolean = false;
+						for each (var oRoom : Room in current_room.aLinkedRooms) {
+							if (oRoom == foundRoom) bAlreadyLinked = true;
+						}
+						// not already linked...
+						if (!bAlreadyLinked) {
+							
+							LinkMapsByRoom(current_room,foundRoom);
+							return; // only link one room at a time
+									
+						}						
+											
+					}
+				}
+			}	
+			
+		}
 	
 	
 		public function setCurrentRoom(room:Room) : void {
@@ -342,6 +384,44 @@ package com.simian.mapper {
 			return false;			
 		}
 		
+		// if this room is replicated (non linear maps)
+		// merge this room and it's clone back to being one room. 
+		public function mergeOtherRoom() : void {
+			
+			// find a room that matches this room in the current map, but not this room!
+			var mergeRoom : Room = oMap.find(current_room);
+			
+			if (mergeRoom != null) {
+				
+				// add any non null exits from the merge room to this room
+				for each (var exit : Exit in mergeRoom.room_aExits ) {
+					
+					if (exit.room != null) {
+						// make sure the master room doesn't also have this exit
+						// if it does remove it from the room being merged
+						var bExists : Boolean = false;
+						for each (var exitCheck : Exit in current_room.room_aExits ) {														
+							if (exitCheck.room != null && exitCheck.direction == exit.direction) {
+								bExists = true;
+								removeRoom(exit.room);
+							}   
+						}
+						// alright, it isn't a duplicate room, so merge it in																									
+						if (bExists == false){
+							current_room.addExit(exit.direction,exit.room,exit.command,false);
+							exit.room.addExit(reverseDirection(exit.direction),current_room,reverseDirection(exit.direction),false);
+							redrawRoom(exit.room);
+						} 						
+					}
+				}								
+				
+				removeRoom(mergeRoom);
+				
+				redrawRoom(current_room);
+				
+			}
+			
+		}
 
 
 		// finds the users position in the event they've become desync'd or just logged in...
@@ -374,7 +454,7 @@ package com.simian.mapper {
 			
 			
 			// if we've got this far then we didn't find the room in any of the maps
-			errorMessage('Your current room could not be found in the map (you might try looking around)');
+			errorMessage('Your current room could not be found anywhere other than where you are now');
 			bMappingEnabled = false;
 		
 			
@@ -447,13 +527,29 @@ package com.simian.mapper {
 				// if this is a new room add it to the matrix
 				// if there was a room here already make sure it's this room then switch to it...				
 				if (expectedRoom == null ){ 									
-
-					// if mapping is enabled add to the room matrix
-					if (bMappingEnabled) {	
-						addRoom(current_x,current_y,current_z,newRoom);
+										
+					var thisExit : Exit; 
+					
+					// if we just moved from another room check the exit (might be non linear exit)
+					if (current_room != null) thisExit =  current_room.findExit(move_direction);
+					
+					// if it turns out to be a non linear exit update our current pos
+					// otheerwise it's a new room!
+					if (thisExit != null && !thisExit.bLinearExit) {
+						expectedRoom = thisExit.room;
+						current_x = thisExit.room.room_x;
+						current_y = thisExit.room.room_y;
+						current_z = thisExit.room.room_z;	
+					} else {					
+						// if mapping is enabled add to the room matrix
+						if (bMappingEnabled) {	
+							addRoom(current_x,current_y,current_z,newRoom);
+						}
 					}
 					
-				} else{
+				} 
+				
+				if (expectedRoom != null ){					
 					if ( ! newRoom.match_room(expectedRoom) ){
 						errorMessage('moved but not to where we expected' );
 						move_direction = 'Error'

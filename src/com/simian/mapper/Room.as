@@ -139,7 +139,8 @@ package com.simian.mapper
 			}						
 
 			// add in the room box	
-			thisSprite.graphics.beginFill(0x00ff00);			
+			if (this.aLinkedRooms != null && this.aLinkedRooms.length > 0) thisSprite.graphics.beginFill(0x0000ff);
+			else thisSprite.graphics.beginFill(0x00ff00);			
 			thisSprite.graphics.drawRect(join_size,join_size,length,length);			
 			thisSprite.graphics.endFill();
 			
@@ -150,13 +151,16 @@ package com.simian.mapper
 			}
 			
 			
-			thisSprite.graphics.lineStyle(1,0x000000);
+			
 
 			// draw in any exits
 			for each (var exit : Exit in this.room_aExits ) {
 				
 				var join_gap : int = 0;
 				var startPoint : int;
+			
+				if ( !exit.bLinearExit) thisSprite.graphics.lineStyle(1,0x00ff00);
+				else thisSprite.graphics.lineStyle(1,0x000000); 
 				
 				// if this exit hasn't been linked to a room yet leave a gap
 				if (exit.room == null) join_gap = 2;
@@ -229,27 +233,40 @@ package com.simian.mapper
 
 
 		// adds an exit from one room to another room
-		public function addExit(direction : String,to_room : Room) : void {
+		public function addExit(direction : String,to_room : Room,_command:String = '', _bLinearExit : Boolean = true) : void {
 			
 			var bExists : Boolean = false;
+			
+			if (_command == '') _command = direction;
 						
 			// could check to make sure the link is to the same room
 			// can't be arsed doing that just yet...			
 			for each (var exit : Exit in this.room_aExits ) {
 				if (exit.direction == direction) {													
-					if (exit.room != to_room && to_room != null) exit.room = to_room;
+					if (exit.room != to_room && to_room != null) {
+						exit.room = to_room;
+						exit.command = _command;
+						exit.bLinearExit = _bLinearExit;
+					} 
 					bExists = true;
 				}
 			}
 			
-			if (!bExists) {
-				var newExit : Exit = new Exit(direction,to_room,direction);
+			if (!bExists) {				
+				var newExit : Exit = new Exit(direction,to_room,_command, _bLinearExit);
 				this.room_aExits.push(newExit); 												
 			}
 			
 		}
 		
-
+		
+		// returns the exit info for a given direction
+		public function findExit(direction : String) : Exit {
+			for each (var exit : Exit in this.room_aExits ) {
+				if (exit.direction == direction) return exit;																	
+			}			
+			return null;
+		}
 		
 
 	}
