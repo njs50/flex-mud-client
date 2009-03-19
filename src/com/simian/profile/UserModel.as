@@ -32,8 +32,6 @@ package com.simian.profile {
 		// local shared object data
 		private var localData : SharedObject;
 		
-		private static const PROFILE_VERSION : String = "0.000006n";
-		
 		private var dispatcher : Dispatcher = new Dispatcher();
 
 		
@@ -63,6 +61,8 @@ package com.simian.profile {
 		
 			// remove any redundant trigger groups
 			removeEmptyGroups();
+			
+			writeProfile();
 														
 		}
 		
@@ -187,7 +187,8 @@ package com.simian.profile {
 		private function writeProfile() : void {
 			
 			if (!bDelayProfileWrite) {				
-				localData.data.profile = this.toByteArray();												
+				localData.clear();
+				localData.data.profile = this.toByteArray();																
 				localData.flush();			
 				trace('profile written');
 			} else {
