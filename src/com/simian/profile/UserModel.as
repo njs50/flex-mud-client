@@ -27,6 +27,8 @@ package com.simian.profile {
 				
 		private var _aMaps : Array;
 		
+		private var bDelayProfileWrite : Boolean = false;
+		
 		// local shared object data
 		private var localData : SharedObject;
 		
@@ -41,32 +43,23 @@ package com.simian.profile {
 			_aAlias 	= new ArrayCollection();	
 			_aTrigger 	= new ArrayCollection();				
 			_aTriggerGroup 	= new ArrayCollection();
+			_aMaps = new Array();
+			_aWindowSettings = new Array();
+			_telnetSettings = new TelnetSettings();
 				
-			localData = SharedObject.getLocal('telnetData');
-			
-			// check the loaded profiles version is the same as this one
-			if ( !( (localData.data.hasOwnProperty('profileVersion')) && (localData.data.profileVersion == PROFILE_VERSION) ) ){			   	
-			   	localData.clear();
-			   	trace('-- local profile cleared (failed version check)');			   	
+			try {				
+				localData = SharedObject.getLocal('telnetData','/');
+			} catch(error : Error) {
+				trace('badness loading profile');
 			}
+			
+			// check the loaded profiles version is the same as this one			
+			// 	localData.clear();
 			
 			// if the flash cookie is new lets initialise all the stuff we plan to store in it
-			if (localData.size == 0) {
-				localData.data.aAlias 			= new Array();
-				localData.data.aMaps 			= new Array();				
-				localData.data.aTrigger 		= new Array();
-				localData.data.aTriggerGroup	= new Array();				
-				localData.data.aWindowSettings 	= new Array();
-				localData.data.profileVersion 	= PROFILE_VERSION;
-				localData.data.telnetSettings	= new TelnetSettings(); 				
+			if (localData.size > 0 && localData.data.hasOwnProperty('profile')) {
+				this.fromByteArray(localData.data.profile);
 			}
-			
-			aMaps				= localData.data.aMaps;
-			_aAlias.source 			= localData.data.aAlias;			
-			_aTrigger.source 		= localData.data.aTrigger;
-			_aTriggerGroup.source 	= localData.data.aTriggerGroup;			
-			_aWindowSettings 		= localData.data.aWindowSettings;
-			_telnetSettings			= localData.data.telnetSettings;	
 		
 			// remove any redundant trigger groups
 			removeEmptyGroups();
@@ -191,8 +184,16 @@ package com.simian.profile {
 		}
 
 		// write to the local shared object now (may prompt user to allow more storage)
-		private function writeProfile() : void {						
-			localData.flush();
+		private function writeProfile() : void {
+			
+			if (!bDelayProfileWrite) {				
+				localData.data.profile = this.toByteArray();												
+				localData.flush();			
+				trace('profile written');
+			} else {
+				trace('profile write delayed');
+			}
+			
 		}
 		
 		
@@ -216,6 +217,9 @@ package com.simian.profile {
 			// we are going to queue up the import of any embedded objects to prevent
 			// infinite loops of badness when a child obj is linked to a parent
 			var aDelayedImportQueue : Array = new Array();
+
+			// prevent profile from being written during load
+			bDelayProfileWrite = true;
 
         	// send event to close all windows
 			var mdiEvent : WindowEvent = new WindowEvent(WindowEvent.CLOSE_WINDOWS);							
@@ -258,6 +262,9 @@ package com.simian.profile {
         	// send event to restore main telnet window (to loaded state)
 			mdiEvent = new WindowEvent(WindowEvent.OPEN_TELNET_WINDOW);							
 			dispatcher.dispatchEvent(mdiEvent);
+			
+			// allow profile changes to be saved again
+			bDelayProfileWrite = false;
 			
 		}
 		

@@ -553,9 +553,11 @@ package com.simian.mapper {
 				
 				if (expectedRoom != null ){					
 					if ( ! newRoom.match_room(expectedRoom) ){
-						errorMessage('moved but not to where we expected' );
+						if (bMappingEnabled) errorMessage('moved but not to where we expected' );
 						move_direction = 'Error'
-					} else newRoom = expectedRoom;									
+						bMappingEnabled = false;
+					} else newRoom = expectedRoom;
+														
 				}			
 								
 				// if this is the first room in the map then make it so!
@@ -563,8 +565,8 @@ package com.simian.mapper {
 				
 				// if the mapper is in an error state do nothing (but taunt the user for fun) 
 				else if ( move_direction == 'Error' ) {
-					errorMessage('Mapping currently suspended due to error');
-					
+					if (bMappingEnabled) errorMessage('Mapping suspended due to error');
+					bMappingEnabled = false;
 					// attempt to recover from the error if we are not mapping
 										
 				// if we have a pending move action then lets add this room to the map.
