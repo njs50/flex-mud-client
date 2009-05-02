@@ -757,8 +757,10 @@ package com.simian.scripting {
 			var thisChar : String = '';
 			
 			for (var i : int = 0; i < path.length;i++) {			
-				thisChar = path.charAt(i);				
-				if (thisChar.search('\d') == 0) repeat = parseInt(thisChar);
+				thisChar = path.charAt(i);								
+				if (thisChar.search('[0-9]') == 0) {
+					repeat = parseInt(thisChar);
+				}
 				else {					
 					for (var j: int = 0; j < repeat; j++) aNewPath.push(thisChar);
 					repeat = 1;

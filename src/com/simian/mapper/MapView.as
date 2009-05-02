@@ -3,6 +3,8 @@ package com.simian.mapper
 
 	import flash.display.Sprite;
 	import flash.events.Event;
+	import flash.events.KeyboardEvent;
+	import flash.events.MouseEvent;
 	import flash.geom.Rectangle;
 	
 	import mx.core.ScrollControlBase;
@@ -13,21 +15,23 @@ package com.simian.mapper
 	public class MapView extends ScrollControlBase
 	{		
  
-		public var oMapModel : MapperModel;
-
-		public var last_room : Room;
+		public var oMapModel : MapperModel;		
 
 		private var map : Map; 		
 		private var mapSprite : Sprite;		
 		private var current_layer_sprite : Sprite;	 
 
+		public var map_current_height : int = 0;
 
 		public function MapView()
 		{
 			this.horizontalScrollPolicy = ScrollPolicy.AUTO;
 			this.verticalScrollPolicy = ScrollPolicy.AUTO;
 			this.liveScrolling = false;			
+			 
 		}
+ 			
+
 		
         override protected function createChildren():void{
             
@@ -36,13 +40,12 @@ package com.simian.mapper
             mapSprite = new Sprite();
             addChild(mapSprite);    
             mapSprite.mask = this.maskShape;
-                    
+            
 		 	this.addEventListener(ScrollEvent.SCROLL, onScroll);   		 	         
-         	this.addEventListener(Event.RESIZE, resizeHandler);
+         	this.addEventListener(Event.RESIZE, resizeHandler);          	         	        				     
             
         }		
-
-		
+        		
 		private function get internal_height() : int {			
 			if (this.horizontalScrollBar) {
 				return (this.height - this.horizontalScrollBar.height);
@@ -57,7 +60,15 @@ package com.simian.mapper
 			return this.width			
 		}
 
-
+		
+		public function changeLayer(new_height : int) : void {
+			if (oMapModel.current_room != null && oMapModel.current_room.oMap.oRooms[new_height] != null) {
+				map_current_height = new_height; 
+				if (current_layer_sprite != null) mapSprite.removeChild(current_layer_sprite);													
+				current_layer_sprite = oMapModel.getLayerSprite(oMapModel.current_room.oMap.oRooms[new_height]); 					
+				mapSprite.addChild(current_layer_sprite);					
+			}				
+		}
 
 		public function changeRoom() : void {		
 			
@@ -71,26 +82,15 @@ package com.simian.mapper
 					map = oMapModel.current_room.oMap;
 					bChangeSprite = true;	
 				}
-				
-				// if the layer has changed update the layer
-				if (last_room != null) {			
-					if (oMapModel.current_room.room_z != last_room.room_z) bChangeSprite = true;				
-				} else bChangeSprite = true;
-								
-			
+															
 				// if it's time to change our map layer sprite...
-				if (bChangeSprite || current_layer_sprite == null) {
-					if (current_layer_sprite != null) mapSprite.removeChild(current_layer_sprite);													
-					current_layer_sprite = oMapModel.getLayerSprite(oMapModel.current_room.oMap.oRooms[oMapModel.current_room.room_z]); 					
-					mapSprite.addChild(current_layer_sprite);						
+				if (bChangeSprite || current_layer_sprite == null || map_current_height != oMapModel.current_room.room_z) {
+					changeLayer(oMapModel.current_room.room_z);					
 				}
 
 				// center the map (if required)
 				centerMap();	
-				
-				// update the last room ref			
-				last_room = oMapModel.current_room;
-			
+							
 			}			
 			
 			

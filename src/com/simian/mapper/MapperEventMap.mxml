@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <EventMap
    xmlns:mx="http://www.adobe.com/2006/mxml"
-   xmlns="http://mate.asfusion.com/">
+   xmlns="http://mate.asfusion.com/"   
+   >
 
 	<mx:Script>
 		<![CDATA[
@@ -30,7 +31,7 @@
 		<PropertyInjector targetKey="oMapModel" source="{MapperModel}" />
 	</Injectors>	
 	
-	<EventHandlers type="{MovementEvent.MOVE_DIRECTION}" debug="true">
+	<EventHandlers type="{MovementEvent.MOVE_DIRECTION}" >
 		<MethodInvoker generator="{MapperModel}" method="nextMoveDirection" arguments="{event.direction}" />
 	</EventHandlers>
 

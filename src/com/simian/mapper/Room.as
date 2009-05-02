@@ -25,6 +25,9 @@ package com.simian.mapper
 		public var room_line1 : String;
 		public var room_line2 : String;
 		public var room_line3 : String;
+		
+		public var room_notes : String;
+		
 		public var room_aExits : Array;
 				
 		public var room_x : int;
@@ -32,10 +35,12 @@ package com.simian.mapper
 		public var room_z : int;
 		
 		public var travel_cost : int = 1;
+		
+		public var bNonStandardExits : Boolean = false;
 						
 		private var dispatcher : Dispatcher = new Dispatcher();
 		
-		public function Room(_map:Map = null, _name:String = '',exits_string:String = '',_line1:String = '',_line2:String = '',_line3:String = '', _x : int = 0, _y : int = 0, _z:int = 0, _aExits:Array = null)
+		public function Room(_map:Map = null, _name:String = '',exits_string:String = '',_line1:String = '',_line2:String = '',_line3:String = '', _x : int = 0, _y : int = 0, _z:int = 0)
 		{
 
 			// set default properties.
@@ -51,8 +56,7 @@ package com.simian.mapper
 			room_z = _z;
 			
 			// set us up the exits
-			if (room_aExits == null) room_aExits = new Array();
-			else room_aExits = _aExits;
+			room_aExits = new Array();			
 			
 			// parse any exits out of the optinal exit string (these are untested exits)
 			var exitsRegexp : RegExp = /(north|east|south|west|up|down)/ig;			
@@ -94,11 +98,6 @@ package com.simian.mapper
 		}
 
 
-		public function redraw() : void	{
-
-			// depricated
-				
-		}
 
 
 		public function getSprite(recycleSprite : Sprite = null, bSelected:Boolean = false, bCurrentroom : Boolean = false) : Sprite {

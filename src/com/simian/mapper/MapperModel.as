@@ -20,6 +20,7 @@ package com.simian.mapper {
 		
 		public var lastRoom : Room;
 		
+		public var bTwoWayExits : Boolean = true;
 		public var bMappingEnabled : Boolean = false;
 		public var bAutoMove : Boolean = false;
 		public var aMaps : Array;
@@ -39,6 +40,7 @@ package com.simian.mapper {
 		private var current_z : int = 0;				
 		private var move_direction : String = '';
 		private var aQueuedMoves : Array = new Array();		
+		private var bNonStandardMoveNext : Boolean = false;
 	
 				
 		// vars for path handling	
@@ -253,12 +255,16 @@ package com.simian.mapper {
 	
 	
 		public function setCurrentRoom(room:Room) : void {
+			
 			if (current_room != null) {
 				lastRoom = current_room;
 				dictRoomSprites[lastRoom] = lastRoom.getSprite(dictRoomSprites[lastRoom],(lastRoom == selected_room),false);
 			}
-			current_room = room;
-			dictRoomSprites[current_room] = current_room.getSprite(dictRoomSprites[current_room],(current_room == selected_room),true);
+			if (room != null) {			
+				current_room = room;
+				dictRoomSprites[current_room] = current_room.getSprite(dictRoomSprites[current_room],(current_room == selected_room),true);
+			}
+						
 		}
 	
 		public function newPath(aNewPath : Array) : void {
@@ -357,7 +363,7 @@ package com.simian.mapper {
 					// only add this if the room isn't already in aFinal (and it's actually an exit, not just a placeholder)				
 					if ( oExit.room != null && !nodeArrayContainsRoom(aFinal,oExit.room) ){ 
 						var aNewPath : Array = current_node.aPath.slice(); 
-						aNewPath.push(oExit.direction);
+						aNewPath.push(oExit.command);
 						aAdjacent.push( new PathNode( current_node.distance + oExit.room.travel_cost, oExit.room , aNewPath ) );
 					}				
 				}
@@ -368,7 +374,9 @@ package com.simian.mapper {
 					aAdjacent = aAdjacent.sortOn( "distance", Array.NUMERIC | Array.DESCENDING );				
 					current_node = aAdjacent.pop();						
 					// check if this is the room we are looking for!
-					if (current_node.room == endRoom) return current_node.aPath;								
+					if (current_node.room == endRoom){
+						return current_node.aPath;
+					} 								
 				} else break;			
 			} 
 						
@@ -456,7 +464,7 @@ package com.simian.mapper {
 			setCurrentRoom(current_room);
 			
 			// if we've got this far then we didn't find the room in any of the maps
-			errorMessage('Your current room could not be found anywhere other than where you are now');
+			errorMessage('Your current room could not be found in any other map');
 			bMappingEnabled = false;
 		
 			
@@ -484,8 +492,7 @@ package com.simian.mapper {
 					} 
 					
 					if (verbose) errorMessage('exited : ' + oExitCheck[2] );
-				
-					if (bAutoMove && aPath.length > 0) stepPath();						
+															
 				}
 					
 			}
@@ -495,6 +502,7 @@ package com.simian.mapper {
 		public function nextMoveDirection(direction:String) : void {			
 			move_direction = direction;
 			move(direction);
+			bNonStandardMoveNext = true;
 			if (verbose) errorMessage('expecting move : ' + move_direction );			
 		}
 		
@@ -503,6 +511,7 @@ package com.simian.mapper {
 			current_x = _x;
 			current_y = _y;
 			current_z = _z;			
+			bNonStandardMoveNext = true;
 			if (verbose) errorMessage('teleporting : ' + move_direction + ' (' + current_x + ',' + current_y + ',' + current_z + ')' );
 		}
 
@@ -511,6 +520,7 @@ package com.simian.mapper {
 			current_x += _x;
 			current_y += _y;
 			current_z += _z;			
+			bNonStandardMoveNext = true;
 			if (verbose) errorMessage('teleporting : ' + move_direction + ' (' + current_x + ',' + current_y + ',' + current_z + ')' );
 		}		
 
@@ -552,13 +562,38 @@ package com.simian.mapper {
 				} 
 				
 				if (expectedRoom != null ){					
+					
+					// if we moved to where we were hoping update the newRoom to be the *real* room
 					if ( ! newRoom.match_room(expectedRoom) ){
-						if (bMappingEnabled) errorMessage('moved but not to where we expected' );
-						move_direction = 'Error'
-						bMappingEnabled = false;
+						
+						var bFoundExit : Boolean = false;
+												
+						if (current_room.bNonStandardExits) {
+							
+							for each (var roomExit : Exit in current_room.room_aExits ) {								
+								if ( roomExit.room != null && newRoom.match_room(roomExit.room) ) {									
+									move_direction = roomExit.direction;									
+									newRoom = roomExit.room;									
+									current_x = newRoom.room_x;
+									current_y = newRoom.room_y;
+									current_z = newRoom.room_z;																		
+									bFoundExit = true;
+								}							
+							}	
+																																		
+						} 
+						
+						if (! bFoundExit) {						
+							if (bMappingEnabled) errorMessage("moved but not to where we expected (you may need to use /moveDirection('north') to specify which way you are about to move");
+							move_direction = 'Error'
+							bMappingEnabled = false;
+						}
+						
 					} else newRoom = expectedRoom;
 														
 				}			
+				
+				
 								
 				// if this is the first room in the map then make it so!
 				if (current_room == null) { current_room = newRoom; lastRoom = current_room;  } 	
@@ -578,7 +613,14 @@ package com.simian.mapper {
 						// add exit from last room to this room
 						current_room.addExit(move_direction,newRoom);					
 						// this is assuming all moves are bidirectional (no one way doors)
-						newRoom.addExit(reverseDirection(move_direction),current_room);										
+						if (bTwoWayExits) newRoom.addExit(reverseDirection(move_direction),current_room);		
+						
+						if  (bNonStandardMoveNext) {
+							current_room.bNonStandardExits = true;
+							if (bTwoWayExits) newRoom.bNonStandardExits = true;
+							bNonStandardMoveNext = false;
+						}
+														
 					}
 					
 					// now that we have processed the move reset move_direction;
@@ -597,12 +639,20 @@ package com.simian.mapper {
 					// check the detected room vs the current room
 					// to see if they've changed rooms without moving!
 					if ( ! newRoom.match_room(current_room) ){
+						
 						errorMessage('room change detected but no move direction was noticed!' );						
 					} 
 						 
 				} 
 				
-				setCurrentRoom(newRoom);
+				// if we've actually moved rooms...
+				if (newRoom != current_room) {
+					setCurrentRoom(newRoom);
+					if (bAutoMove && aPath.length > 0) stepPath();	
+				}
+				
+				
+				
 								
 				if (verbose) errorMessage('room detected : ' + newRoom.room_name );
 			}
@@ -615,7 +665,6 @@ package com.simian.mapper {
 
 		
 		
-
 		
 		
 		

@@ -10,11 +10,13 @@
  	creationComplete="init()"
  	title="{oMapModel.oMap.map_name}"
  	styleName="standardPadding"		 	
+ 	
 >
 
 
   <mx:Script>
   <![CDATA[
+  	import com.simian.telnet.TelnetEvent;
   	import com.simian.mapper.MapperModel;
   	import mx.collections.ArrayCollection;
   	import com.simian.mapper.Exit;
@@ -29,35 +31,83 @@
 	[Bindable]
 	public var oMapModel : MapperModel;
 		  
-  	private var watcher:ChangeWatcher;
+  	private var current_watcher:ChangeWatcher;
+  	private var selected_watcher:ChangeWatcher;
   
  	
  	private function init() : void { 				
- 		watcher = ChangeWatcher.watch(oMapModel,"current_room",roomChange); 		  		
+ 		
+ 		current_watcher = ChangeWatcher.watch(oMapModel,"current_room",currentRoomChange); 
+		selected_watcher = ChangeWatcher.watch(oMapModel,"selected_room",selectedRoomChange); 				  		
+ 		
+ 		this.addEventListener(KeyboardEvent.KEY_UP,keyListener);
+ 		 		
  	} 
+
+	
+	private function keyListener(event:KeyboardEvent) : void {
+		
+		// if they are on the main map tab and they hit a direction move em...		
+		if (mapTabs.selectedIndex == 0) {			
+			if (event.keyCode == 38 || event.keyCode == 104) attemptMove('north');
+			else if (event.keyCode == 39 || event.keyCode == 102) attemptMove('east');
+			else if (event.keyCode == 40 || event.keyCode == 98) attemptMove('south');
+			else if (event.keyCode == 37 || event.keyCode == 100) attemptMove('west');			
+			else if (event.keyCode == 107) attemptMove('up');
+			else if (event.keyCode == 109) attemptMove('down');
+		}
+		
+
+	}
+
+ 	private function attemptMove(direction : String) : void {
+ 		var oExit : Exit = oMapModel.current_room.findExit(direction);
+ 		var cmd : String; 		 		
+ 		if (oExit != null) cmd = oExit.command;
+ 		else cmd = direction;
+
+		// send command event
+		var telnetEvent : TelnetEvent = new TelnetEvent(TelnetEvent.SEND_DATA);
+		telnetEvent.data = cmd;			
+		dispatchEvent(telnetEvent);		
+ 			
+ 	}
  	
- 	
+
  	// every time we change room call this...
- 	private function roomChange(e:Event = null) : void {
+ 	private function currentRoomChange(e:Event = null) : void {
+ 		
+ 		// if they are still on the initial map see if we can find them in a saved map
+ 		if(oMapModel.current_room.oMap.map_name == "temporary map") oMapModel.findMe();
  		
  		if (oMapModel.current_room != null) {
- 			
- 			map_name.text = oMapModel.oMap.map_name;
-	 		form_heading.text = oMapModel.current_room.room_name;
-	 		form_desc.text = oMapModel.current_room.room_line1+ ' ' + oMapModel.current_room.room_line2 + ' ' + oMapModel.current_room.room_line3;	 			 	
+ 			 			
+ 			currentRoomEditor.roomChange(oMapModel.current_room);	 			 	
 	 		
  			mapview.changeRoom();
  			
+ 			// handle map change if we've moved to a new map...
  			if (selected_map.selectedItem != oMapModel.current_room.oMap) selected_map.selectedItem = oMapModel.current_room.oMap;
  			
  		}
  		
  	}
  	
+
+ 	// every time we change room call this...
+ 	private function selectedRoomChange(e:Event = null) : void {
+ 		
+ 		if (oMapModel.selected_room != null) { 					
+			selectedRoomEditor.roomChange(oMapModel.selected_room); 		
+ 		}
+ 		
+ 	}
+ 	
+ 
+
  
  	
- 	private function find() : void { 		
- 		// despatch a mapping start/stop even
+ 	private function find() : void { 		 		
     	oMapModel.findMe();	
  	}
   
@@ -74,7 +124,7 @@
   		oMapModel.setCurrentRoom(oMapModel.oMap.getRoom(0,0,0));  		  		
   		oMapModel.lastRoom = oMapModel.current_room;
   		
-  		roomChange();  		
+  		currentRoomChange();  		
   	}
 
   	private function mapDelete() : void {
@@ -101,17 +151,31 @@
   		oMapModel.mergeOtherRoom();
   	}
   	
+  	private function mapUp() : void {
+  		mapview.changeLayer(mapview.map_current_height+1);
+  	}
+  	
+  	private function mapDown() : void {
+  		mapview.changeLayer(mapview.map_current_height-1);
+  	}
+  	
+  	private function updateToolTip(event:MapperEvent) : void {
+  		
+  		mapview.toolTip=event.room.room_name;  		
+  		if (event.room.room_notes != null) mapview.toolTip += '\n' + event.room.room_notes;
+  		
+  	}
   
   ]]>  
   </mx:Script>
 	
 		
-	<mate:Listener type="{MapperEvent.MOUSE_OVER_ROOM}" receive="mapview.toolTip=event.room.room_name" />	
+	<mate:Listener type="{MapperEvent.MOUSE_OVER_ROOM}" receive="updateToolTip(event)" />	
 	
 	
 	<mx:TabNavigator id="mapTabs" width="100%" height="100%" verticalGap="2" paddingTop="2" creationPolicy="all">
 
-		<mx:VBox label="Map" styleName="standardPadding">
+		<mx:VBox label="Map" styleName="standardPadding" >
 
 			<mx:HBox width="100%">
 				<extended:EditableComboBox id="selected_map" width="100" change="mapChange()" dataProvider="{oMapModel.aMaps}" labelField="map_name" editable="true" xmlns:extended="com.simian.extendedComponents.*" />
@@ -123,41 +187,47 @@
 			</mx:HBox>
 			
 			<mapper:MapView 
-				xmlns:mapper="com.simian.mapper.*" 						
-				width="100%" 
-				height="100%" 
-				id="mapview" 
-				oMapModel = "{oMapModel}"
-			/>
+			xmlns:mapper="com.simian.mapper.*" 						
+			width="100%" 
+			height="100%" 
+			id="mapview" 				
+			oMapModel = "{oMapModel}"
+		/>
+		
+			
 
 			<mx:HBox width="100%">
 				<mx:CheckBox label="Auto Mapping" selected="{oMapModel.bMappingEnabled}" id="bAutomap" click="oMapModel.bMappingEnabled=bAutomap.selected" />
 				<mx:CheckBox label="Auto Moving" selected="{oMapModel.bAutoMove}" id="autoMove" click="oMapModel.bAutoMove=autoMove.selected" />								
-				<mx:Button label="Find Room" click="find()" />
-				<mx:Button label="Merge Room" click="mergeRoom()" />
-				<mx:Spacer width="100%" />
-				<mx:Button label="Delete Room" click="deleteSelected()" />	
+				<mx:CheckBox label="Two Way Exits" selected="{oMapModel.bTwoWayExits}" id="twoWayExits" click="oMapModel.bTwoWayExits=twoWayExits.selected" />
 			</mx:HBox>			
+			
+			<mx:HBox width="100%">
+				<mx:Button label="Find Room" click="find()" />
+				<mx:Button label="Up" click="mapUp()" />
+				<mx:Button label="Down" click="mapDown()" />
+				
+				<mx:Spacer width="100%" />
+				<mx:Button label="Merge Room" click="mergeRoom()" />				
+				<mx:Button label="Delete Room" click="deleteSelected()" />	
+			</mx:HBox>
 				
 		</mx:VBox>
 		
 		
 		
-		<mx:Form label="Current Room" width="100%" height="100%" styleName="standardPadding">
+		<window:RoomEditor 
+			xmlns:window="com.simian.window.*"
+			label="Current Room"
+			id="currentRoomEditor" />
 
-			<mx:FormItem label="Map : " width="100%">
-				<mx:Label id="map_name" />
-			</mx:FormItem>			
-			
-			<mx:FormItem label="Name : " width="100%">
-				<mx:Label id="form_heading" />
-			</mx:FormItem>
 
-			<mx:FormItem label="Desc : " width="100%">
-				<mx:TextArea id="form_desc" enabled="false" width="100%" height="60" />	
-			</mx:FormItem>						
-			
-		</mx:Form>
+		<window:RoomEditor 
+			xmlns:window="com.simian.window.*"
+			label="Selected Room"
+			id="selectedRoomEditor" />
+
+
 		
 	</mx:TabNavigator>
 	

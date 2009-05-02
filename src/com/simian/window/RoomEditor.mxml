@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Form
+	xmlns:flexlib="http://code.google.com/p/flexlib/"	
+	xmlns:mate="http://mate.asfusion.com/"
+	xmlns:mx="http://www.adobe.com/2006/mxml"	
+	width="100%" height="100%" styleName="standardPadding">
+
+  <mx:Script>
+  <![CDATA[
+  	import com.simian.mapper.MapperModel;
+  	import mx.collections.ArrayCollection;
+  	import com.simian.mapper.Exit;
+  	
+  	import mx.binding.utils.ChangeWatcher;
+  	
+  	import com.simian.mapper.Room;
+
+ 	private var oRoom : Room;
+ 	
+ 	[Bindable] private var _aExits : ArrayCollection;
+ 	
+ 	private function init() : void { 				 		
+
+ 	} 
+ 	
+
+
+ 	// every time we change room call this...
+ 	public function roomChange(room : Room) : void {
+ 		
+ 		saveChanges();
+ 		
+ 		oRoom = room;
+ 		
+ 		if (oRoom != null) {
+ 			selected_map_name.text = oRoom.oMap.map_name; 			
+	 		selected_form_heading.text = oRoom.room_name;
+	 		selected_form_desc.text = oRoom.room_line1+ ' ' + oRoom.room_line2 + ' ' + oRoom.room_line3;	 
+	 		move_cost.text = oRoom.travel_cost.toString();		
+	 		room_notes.text = oRoom.room_notes;	 	
+	 		bNonStandardExits.selected = oRoom.bNonStandardExits;	
+	 		_aExits = new ArrayCollection(oRoom.room_aExits); 		 			
+ 		}
+ 		
+ 	}
+ 	
+ 	private function saveChanges() : void {
+ 		if (oRoom != null) {
+ 			oRoom.travel_cost = int(move_cost.text);
+ 			oRoom.room_notes = room_notes.text;
+ 			oRoom.bNonStandardExits = bNonStandardExits.selected;
+ 			oRoom.room_aExits = _aExits.source;
+ 		}
+ 	}
+
+
+	private function removeExit() : void {
+		if ( dg_exits.selectedIndex > -1 ) _aExits.removeItemAt(dg_exits.selectedIndex);
+	}
+  
+  ]]>  
+  </mx:Script>
+
+
+	<mx:FormItem label="Map : " width="100%">
+		<mx:Label id="selected_map_name" />
+	</mx:FormItem>			
+	
+	<mx:FormItem label="Name : " width="100%">
+		<mx:Label id="selected_form_heading" />
+	</mx:FormItem>
+
+	<mx:FormItem label="Desc : " width="100%">
+		<mx:TextArea id="selected_form_desc" enabled="false" width="100%" height="60" />	
+	</mx:FormItem>						
+
+	<mx:FormItem label="Move Cost : " width="100%">
+		<mx:TextInput id="move_cost" />
+	</mx:FormItem>
+
+	<mx:FormItem label="Notes : " width="100%">
+		<mx:TextArea id="room_notes" enabled="true" width="100%" height="60" />	
+	</mx:FormItem>	
+	
+	<mx:FormItem label="Exits" width="100%">
+		<mx:DataGrid id="dg_exits" dataProvider="{_aExits}" editable="true">
+			<mx:columns>
+				<mx:DataGridColumn dataField="direction" />
+				<mx:DataGridColumn dataField="command" />
+			</mx:columns>
+		</mx:DataGrid>	
+		<mx:Button label="Remove Exit" click="removeExit()" />
+	</mx:FormItem>
+	
+	<mx:FormItem label="" width="100%">
+		<mx:CheckBox label="Non standard Exits" id="bNonStandardExits" />	
+	</mx:FormItem>		
+	
+	
+	
+	<mx:Button label="Save" click="saveChanges()" />
+	
+</mx:Form>
