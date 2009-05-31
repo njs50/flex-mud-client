@@ -9,7 +9,8 @@
 	focusStart="in_command.setFocus();"
 	click="in_command.setFocus();"	
 	name="telnetWindow"
-	styleName="noPadding"		
+	styleName="noPadding"
+	creationComplete="init()"		
 >
 
 
@@ -22,19 +23,44 @@
 
   	import com.simian.telnet.*;
   	
-	
-
 	[Bindable]
 	public var telnetSettings : TelnetSettings;
-
 
 	// a sent command stack (so we can use up/down to move through previous sent things)
 	private var aCommands : ArrayCollection = new ArrayCollection();
 	private var currentCommandIndex  : int = -1;	
 
+	private var bSupressInput : Boolean = false;
+
+	private function init() : void {		
+		this.addEventListener(KeyboardEvent.KEY_DOWN,inputKeypress);
+		this.addEventListener(KeyboardEvent.KEY_UP,keyUp);	
+		in_command.addEventListener(TextEvent.TEXT_INPUT,textIn);				
+	}
 	
-	private function resetTerminal() : void{
+	// cancel any text input events if the supress flag is set
+	private function textIn (event : TextEvent) : void {		
+		if (bSupressInput) event.preventDefault();				
+	}
+	
+	// clear the supress flag at the end of the keypress (if it was set)
+	private function keyUp(event: KeyboardEvent) : void {
+		if (bSupressInput) bSupressInput = false;
+	}
+	
+	// pass this keypress event onto the mapper (and supress it from the input box)
+	private function mapperKey(event : KeyboardEvent) : void{	
 		
+		bSupressInput = true;	
+				
+		var telnetEvent : TelnetKeyboardEvent = new TelnetKeyboardEvent(TelnetKeyboardEvent.REMOTE_MAPPER_KEY_PRESS);
+		telnetEvent.kb_event = event;			
+		dispatchEvent(telnetEvent);			
+									
+	}
+
+	
+	private function resetTerminal() : void{		
 		ansiTextControl.resetTextArea();
 	}
 
@@ -95,8 +121,6 @@
 
 	private function inputKeypress(event:KeyboardEvent) : void {
 		
-		
-		
 		if (event.keyCode == 38) commandUp();
 		else if (event.keyCode == 40) commandDown();		
 		else if (event.keyCode == 33) ansiTextControl.pageUp();
@@ -108,34 +132,20 @@
 		else if (event.keyCode == 100) mapperKey(event);
 		else if (event.keyCode == 109) mapperKey(event);
 		else if (event.keyCode == 107) mapperKey(event);
-		
-				
+						
 		// reset screen position if they are scrolling and hit a key other than page up / page down	
 		if (ansiTextControl.bScrollingMode && (event.keyCode != 33 || event.keyCode != 3)) ansiTextControl.resetScrolling();
 		
 	}
 	
-	private function mapperKey(event : KeyboardEvent) : void{	
-		
-		trace('sending x remote keypress event to mapper');
-				
-		var telnetEvent : TelnetKeyboardEvent = new TelnetKeyboardEvent(TelnetKeyboardEvent.REMOTE_MAPPER_KEY_PRESS);
-		telnetEvent.kb_event = event;			
-		dispatchEvent(telnetEvent);			
-									
-		in_command.text = in_command.text.slice(0,in_command.text.length-1);
-				
-		trace('why cant i update the text?');							
-	}
   
   ]]>  
   </mx:Script>
 
 	
 	<mate:Listener type="{TelnetEvent.NEW_LINE_DATA}" 		receive="ansiTextControl.addRow(event.data)" />	
-	<mate:Listener type="{TelnetEvent.APPEND_LINE_DATA}"	receive="ansiTextControl.updateLastRow(event.data)" />	
-	
-	<mate:Listener type="{TelnetEvent.RESET_TERMINAL}" 		receive="resetTerminal()" />	
+	<mate:Listener type="{TelnetEvent.APPEND_LINE_DATA}"	receive="ansiTextControl.updateLastRow(event.data)" />		
+	<mate:Listener type="{TelnetEvent.RESET_TERMINAL}" 		receive="resetTerminal()" />		
 	
 	
 	<mx:VBox width="100%" height="100%"  verticalGap="2" paddingTop="2">		    
@@ -156,7 +166,7 @@
 	  	/>
 	  	
 		
-		<mx:TextInput id="in_command" width="100%" keyUp="inputKeypress(event);" />			
+		<mx:TextInput id="in_command" width="100%" />			
 		
 		
 	</mx:VBox>

@@ -66,7 +66,8 @@ package com.simian.mapper
 				map_current_height = new_height; 
 				if (current_layer_sprite != null) mapSprite.removeChild(current_layer_sprite);													
 				current_layer_sprite = oMapModel.getLayerSprite(oMapModel.current_room.oMap.oRooms[new_height]); 					
-				mapSprite.addChild(current_layer_sprite);					
+				mapSprite.addChild(current_layer_sprite);	
+				resizeScrollBars();				
 			}				
 		}
 

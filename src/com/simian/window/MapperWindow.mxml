@@ -55,7 +55,7 @@
 			else if (event.keyCode == 40 || event.keyCode == 98) attemptMove('south');
 			else if (event.keyCode == 37 || event.keyCode == 100) attemptMove('west');			
 			else if (event.keyCode == 109) attemptMove('up');
-			else if (event.keyCode == 107) attemptMove('down');
+			else if (event.keyCode == 107) attemptMove('down');			
 		}
 		
 
@@ -66,7 +66,7 @@
  		var oExit : Exit = oMapModel.current_room.findExit(direction);
  		var cmd : String; 		 		
  		
- 		if (oExit != null) cmd = oExit.command;
+ 		if (oExit != null && oExit.command.length) cmd = oExit.command;
  		else cmd = direction;
 
 		oMapModel.moveFromMap(direction);
