@@ -1,7 +1,5 @@
 package com.simian.telnet {
 
-	import com.simian.ansiTextArea.AnsiTextArea;
-	
 	import flash.events.Event;
 
 	public class TelnetEvent extends Event {
@@ -19,14 +17,13 @@ package com.simian.telnet {
 		public static const CHANGE_TITLE : String = "changeWindowTitleEvent";
 		public static const RESET_TERMINAL : String = "resetTerminalWindowEvent";
 
-
 		// triggers		
 		public static const PARSE_PROMPT_DATA : String = "newPromptParseEvent";
 		public static const PARSE_LINE_DATA : String = "newLineParseEvent";
 		public static const PARSE_BLOCK_DATA : String = "newBlockParseEvent";
 		
 		// EVENT DATA
-		public var data : String;
+		public var data : String;	
 							
 		public function TelnetEvent(type:String, bubbles:Boolean = true, cancelable:Boolean = false) {		
 			super(type,bubbles,cancelable);

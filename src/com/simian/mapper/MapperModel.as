@@ -30,7 +30,7 @@ package com.simian.mapper {
 		// private vars
 		private var dispatcher : Dispatcher = new Dispatcher();
 		
-		private var exitingRegExp : RegExp = /You\s(\S+\s?\S*)\s(north|east|south|west|up|down)\.$/;		
+		private var exitingRegExp : RegExp = /(?:You|You follow)\s(\S+\s?\S*)\s(north|east|south|west|up|down)\.$/;		
 		private var roomRegExp : RegExp = /([^\n]*)\n\[Exits:([^\]]*)\]\s*([^\n]*)\n([^\n]*)\n([^\n]*)/g;
 	
 	
@@ -39,9 +39,9 @@ package com.simian.mapper {
 		private var current_y : int = 0;
 		private var current_z : int = 0;				
 		private var move_direction : String = '';
-		private var aQueuedMoves : Array = new Array();		
-		private var bNonStandardMoveNext : Boolean = false;
-	
+		private var aQueuedMoves : Array = new Array();				
+		
+		private var bMoveFromMap : Boolean = false;
 				
 		// vars for path handling	
 		private var aPath : Array = new Array();
@@ -57,7 +57,8 @@ package com.simian.mapper {
 			
 		}
 	
-	
+		
+
 	
 		public function getLayerSprite(layer : MapLayer) : Sprite {
 			
@@ -471,38 +472,48 @@ package com.simian.mapper {
 		}
 
 
-
+		public function moveFromMap(direction : String) : void {
+			
+			// this is a move in response to a manual move from the mapper
+			// we can ignore the next move line (As there may not be one if this is a fucked up room exit)
+			
+			bMoveFromMap = true;
+			aQueuedMoves = [];
+			move_direction = direction;
+			
+		}		
 
 		// scans a line of text for a move
 		public function checkLine(text:String) : void {
 			
-			var oExitCheck : Object = exitingRegExp.exec(text);
-						
-			if (oExitCheck != null) {
+			if (!bMoveFromMap) {
 				
-				if (move_direction != 'Error') {
-					// don't want it matching 'You stand up.' or 'You wake up.'	
-					if (oExitCheck[1].toLowerCase() != 'stand' && oExitCheck[1].toLowerCase() != 'wake' && oExitCheck[1].toLowerCase() != 'sit' && oExitCheck[1].toLowerCase() != 'jump' ){
-						if (move_direction.length != 0){
-							aQueuedMoves.push(oExitCheck[2]);	
-						} else {
-							move_direction = oExitCheck[2];	
-							move(move_direction);
-						}
-					} 
+				var oExitCheck : Object = exitingRegExp.exec(text);
+							
+				if (oExitCheck != null) {
 					
-					if (verbose) errorMessage('exited : ' + oExitCheck[2] );
-															
+					if (move_direction != 'Error') {
+						// don't want it matching 'You stand up.' or 'You wake up.'	
+						if (oExitCheck[1].toLowerCase() != 'stand' && oExitCheck[1].toLowerCase() != 'wake' && oExitCheck[1].toLowerCase() != 'sit' && oExitCheck[1].toLowerCase() != 'jump' ){
+							if (move_direction.length != 0){
+								aQueuedMoves.push(oExitCheck[2]);	
+							} else {
+								move_direction = oExitCheck[2];	
+								move(move_direction);
+							}
+						} 
+						
+						if (verbose) errorMessage('exited : ' + oExitCheck[2] );
+																
+					}
+						
 				}
-					
 			}
-			
 		} 
 		
 		public function nextMoveDirection(direction:String) : void {			
 			move_direction = direction;
-			move(direction);
-			bNonStandardMoveNext = true;
+			move(direction);			
 			if (verbose) errorMessage('expecting move : ' + move_direction );			
 		}
 		
@@ -510,8 +521,7 @@ package com.simian.mapper {
 			move_direction = 'teleport';
 			current_x = _x;
 			current_y = _y;
-			current_z = _z;			
-			bNonStandardMoveNext = true;
+			current_z = _z;						
 			if (verbose) errorMessage('teleporting : ' + move_direction + ' (' + current_x + ',' + current_y + ',' + current_z + ')' );
 		}
 
@@ -519,8 +529,7 @@ package com.simian.mapper {
 			move_direction = 'teleport';
 			current_x += _x;
 			current_y += _y;
-			current_z += _z;			
-			bNonStandardMoveNext = true;
+			current_z += _z;						
 			if (verbose) errorMessage('teleporting : ' + move_direction + ' (' + current_x + ',' + current_y + ',' + current_z + ')' );
 		}		
 
@@ -533,8 +542,15 @@ package com.simian.mapper {
 			// if this block contains a room...
 			while (oRoomCheck = roomRegExp.exec(text)) {
 				
+				// if they've just moved manually from the map then assume it was a successfull move...
+				if (bMoveFromMap) {
+					move(move_direction);
+					bMoveFromMap = false;
+				}
+				
 				var expectedRoom : Room = oMap.getRoom(current_x,current_y,current_z);
 				var newRoom : Room = new Room(oMap,oRoomCheck[1],oRoomCheck[2],oRoomCheck[3],oRoomCheck[4],oRoomCheck[5],current_x,current_y,current_z);
+				
 				
 				// if this is a new room add it to the matrix
 				// if there was a room here already make sure it's this room then switch to it...				
@@ -568,7 +584,7 @@ package com.simian.mapper {
 						
 						var bFoundExit : Boolean = false;
 												
-						if (current_room.bNonStandardExits) {
+						if (!bMappingEnabled) {
 							
 							for each (var roomExit : Exit in current_room.room_aExits ) {								
 								if ( roomExit.room != null && newRoom.match_room(roomExit.room) ) {									
@@ -614,13 +630,7 @@ package com.simian.mapper {
 						current_room.addExit(move_direction,newRoom);					
 						// this is assuming all moves are bidirectional (no one way doors)
 						if (bTwoWayExits) newRoom.addExit(reverseDirection(move_direction),current_room);		
-						
-						if  (bNonStandardMoveNext) {
-							current_room.bNonStandardExits = true;
-							if (bTwoWayExits) newRoom.bNonStandardExits = true;
-							bNonStandardMoveNext = false;
-						}
-														
+																				
 					}
 					
 					// now that we have processed the move reset move_direction;

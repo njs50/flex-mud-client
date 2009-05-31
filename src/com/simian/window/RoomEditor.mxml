@@ -37,8 +37,7 @@
 	 		selected_form_heading.text = oRoom.room_name;
 	 		selected_form_desc.text = oRoom.room_line1+ ' ' + oRoom.room_line2 + ' ' + oRoom.room_line3;	 
 	 		move_cost.text = oRoom.travel_cost.toString();		
-	 		room_notes.text = oRoom.room_notes;	 	
-	 		bNonStandardExits.selected = oRoom.bNonStandardExits;	
+	 		room_notes.text = oRoom.room_notes;	 		 		
 	 		_aExits = new ArrayCollection(oRoom.room_aExits); 		 			
  		}
  		
@@ -47,8 +46,7 @@
  	private function saveChanges() : void {
  		if (oRoom != null) {
  			oRoom.travel_cost = int(move_cost.text);
- 			oRoom.room_notes = room_notes.text;
- 			oRoom.bNonStandardExits = bNonStandardExits.selected;
+ 			oRoom.room_notes = room_notes.text; 			
  			oRoom.room_aExits = _aExits.source;
  		}
  	}
@@ -91,10 +89,6 @@
 		</mx:DataGrid>	
 		<mx:Button label="Remove Exit" click="removeExit()" />
 	</mx:FormItem>
-	
-	<mx:FormItem label="" width="100%">
-		<mx:CheckBox label="Non standard Exits" id="bNonStandardExits" />	
-	</mx:FormItem>		
 	
 	
 	

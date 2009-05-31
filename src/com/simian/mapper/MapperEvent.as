@@ -13,8 +13,7 @@ package com.simian.mapper {
 		public static const MOUSE_OUT_ROOM : String = "mapMouseOutRoom";
 
 		public static const MAPPER_SELECT_ROOM : String = "mapSelectLocation";
-		public static const MAPPER_MOVE_TO_ROOM : String = "mapMoveToRoom";
-		
+		public static const MAPPER_MOVE_TO_ROOM : String = "mapMoveToRoom";				
 		
 		// EVENT DATA				
 		public var room : Room; 	

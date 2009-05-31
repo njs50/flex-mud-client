@@ -35,8 +35,7 @@ package com.simian.mapper
 		public var room_z : int;
 		
 		public var travel_cost : int = 1;
-		
-		public var bNonStandardExits : Boolean = false;
+				
 						
 		private var dispatcher : Dispatcher = new Dispatcher();
 		
