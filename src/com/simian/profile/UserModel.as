@@ -10,11 +10,14 @@ package com.simian.profile {
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
 	import flash.utils.describeType;
+	import flash.utils.setTimeout;
 	
 	import flexlib.mdi.containers.MDIWindow;
 	
 	import mx.collections.ArrayCollection;
 	
+	
+	[Bindable]
 		
 	public class UserModel {
 
@@ -33,7 +36,6 @@ package com.simian.profile {
 		private var localData : SharedObject;
 		
 		private var dispatcher : Dispatcher = new Dispatcher();
-
 		
 		// constructor (load data from shared objects here if they exist (init them if they don't)...)
 		public function UserModel(){			
@@ -52,55 +54,38 @@ package com.simian.profile {
 			}
 			
 			// check the loaded profiles version is the same as this one			
-			// 	localData.clear();
 			
 			// if the flash cookie is new lets initialise all the stuff we plan to store in it
 			if (localData.size > 0 && localData.data.hasOwnProperty('profile')) {
 				this.fromByteArray(localData.data.profile);
 			}
-		
-			// remove any redundant trigger groups
-			removeEmptyGroups();
-			
-			writeProfile();
 														
-		}
-		
-		
+		}		
 		
 		
 		
 		
 		/* PUBLIC PROPERTIES - accessed via getters n setters and stored in a local flash cookie */
 		
-		[Bindable]		
 		public function set aAlias(ac:ArrayCollection) : void {
-			this._aAlias = ac;
-			localData.data.aAlias = ac.source;
-			writeProfile();			
+			this._aAlias = ac;			
 		}
 		
 		public function get aAlias() : ArrayCollection {
 			return this._aAlias
 		}
-		
-		
-		[Bindable]		
-		public function set aTrigger(ac:ArrayCollection) : void {
-			this._aTrigger = ac;
-			localData.data.aTrigger = ac.source;
-			writeProfile();			
+							
+		public function set aTrigger(ac:ArrayCollection) : void {		
+			this._aTrigger = ac;			
 		}
 		
 		public function get aTrigger() : ArrayCollection {
 			return this._aTrigger
 		}
 		
-		[Bindable]		
+				
 		public function set aTriggerGroup(ac:ArrayCollection) : void {
-			this._aTriggerGroup = ac;
-			localData.data.aTriggerGroup = ac.source;
-			writeProfile();			
+			this._aTriggerGroup = ac;			
 		}
 		
 		public function get aTriggerGroup() : ArrayCollection {
@@ -110,33 +95,27 @@ package com.simian.profile {
 			return this._aTriggerGroup;
 		}
 		
-		[Bindable]		
+				
 		public function set aMaps(a:Array) : void {
 			this._aMaps = a;
-			localData.data.aMaps = a;
-			writeProfile();			
 		}
 		
 		public function get aMaps() : Array {
 			return this._aMaps;
 		}
 
-		[Bindable]		
+				
 		public function set aWindowSettings(a:Array) : void {
-			this._aWindowSettings = a;
-			localData.data.aWindowSettings = a;
-			writeProfile();			
+			this._aWindowSettings = a;			
 		}
 		
 		public function get aWindowSettings() : Array {
 			return this._aWindowSettings;
 		}
 
-		[Bindable]		
+				
 		public function set telnetSettings(ts:TelnetSettings) : void {
 			this._telnetSettings = ts;
-			localData.data.telnetSettings = ts;
-			writeProfile();			
 		}
 		
 		public function get telnetSettings() : TelnetSettings {
@@ -183,22 +162,22 @@ package com.simian.profile {
 			return -1;
 		}
 
-		// write to the local shared object now (may prompt user to allow more storage)
-		private function writeProfile() : void {
-			
-			if (!bDelayProfileWrite) {				
-				localData.clear();
-				localData.data.profile = this.toByteArray();																
-				localData.flush();			
-				trace('profile written');
-			} else {
-				trace('profile write delayed');
-			}
-			
+
+		public function writeProfile() : void {
+			// save profile in 15 seconds if a save isn't already scheduled		
+			if (!bDelayProfileWrite){
+				bDelayProfileWrite = true;
+				setTimeout(executeDelayedWrite, 15 * 1000);
+			}		
 		}
-		
-		
-		
+
+		private function executeDelayedWrite() : void {			
+			bDelayProfileWrite = false;
+			localData.clear();
+			localData.data.profile = this.toByteArray();																
+			localData.flush();			
+			trace('profile written');					
+		}
 
 
 		public function toByteArray() : ByteArray {				
@@ -259,13 +238,13 @@ package com.simian.profile {
 			// clear the object lookup object now we are done
 			objectLookup = null;
 			aDelayedImportQueue = null;
+			
+			// allow profile changes to be saved again
+			bDelayProfileWrite = false;
 
         	// send event to restore main telnet window (to loaded state)
 			mdiEvent = new WindowEvent(WindowEvent.OPEN_TELNET_WINDOW);							
 			dispatcher.dispatchEvent(mdiEvent);
-			
-			// allow profile changes to be saved again
-			bDelayProfileWrite = false;
 			
 		}
 		

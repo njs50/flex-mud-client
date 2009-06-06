@@ -62,6 +62,7 @@
 	
 
 	<!-- Events -->
+	
 	<EventHandlers type="{WindowEvent.OPEN_TELNET_WINDOW}">
 		<!-- fire off events to add telnet window to canvas -->		
 		<MethodInvoker generator="{MainModel}" method="getTelnetWindow" />
@@ -106,6 +107,9 @@
 		</EventAnnouncer> 		
  	</EventHandlers> 
  
+	<EventHandlers type="{ProfileEvent.WRITE_PROFILE_LSO}">
+		<MethodInvoker generator="{UserModel}" method="writeProfile" />
+	</EventHandlers>
  
  	<EventHandlers type="{WindowEvent.STORE_WINDOW_SETTINGS}">
  		<MethodInvoker generator="{UserModel}" method="storeWindowSettings" arguments="{event.window}" />

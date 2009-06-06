@@ -12,6 +12,7 @@
 
   <mx:Script>
   <![CDATA[
+  	import com.simian.profile.ProfileEvent;
   	import com.simian.telnet.TelnetEvent;
   	import mx.collections.ArrayCollection;
   	import com.simian.telnet.TelnetSettings;
@@ -21,13 +22,18 @@
   		 		  		
 
 
-	private function resetTerminal() : void {
-						
-		// send command event
-		var telnetEvent : TelnetEvent = new TelnetEvent(TelnetEvent.RESET_TERMINAL);		
-		dispatchEvent(telnetEvent);				
-		
-	}
+		private function resetTerminal() : void {
+							
+			// send command event
+			var telnetEvent : TelnetEvent = new TelnetEvent(TelnetEvent.RESET_TERMINAL);		
+			dispatchEvent(telnetEvent);				
+			
+		}
+	
+	
+		private function saveSettings() : void {
+			dispatchEvent( new ProfileEvent(ProfileEvent.WRITE_PROFILE_LSO) );
+		}
 
   		
   ]]>  
@@ -99,6 +105,8 @@
 	<mx:HRule width="100%"/>
 	
 	<mx:Button label="Reset Terminal" click="resetTerminal()" />
+	
+	<mx:Button label="Save Settings" click="saveSettings()" />
 
 				
 </flexlib:MDIWindow>

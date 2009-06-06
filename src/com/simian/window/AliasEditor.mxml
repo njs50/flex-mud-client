@@ -18,6 +18,7 @@
 
   <mx:Script>
   <![CDATA[
+  	import com.simian.profile.ProfileEvent;
   	import com.simian.profile.TriggerGroup;
   	import com.simian.profile.Alias;
   	import mx.collections.ArrayCollection;
@@ -87,7 +88,8 @@
 				applyFilter();
 
 	  			aliasList.invalidateList();
-	  		  			 			
+	  		  	
+	  		  	dispatchEvent( new ProfileEvent(ProfileEvent.WRITE_PROFILE_LSO) );		 			
   		 	}		 			  			
   		}  		
   		

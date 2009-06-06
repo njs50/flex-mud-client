@@ -7,6 +7,7 @@
 
   <mx:Script>
   <![CDATA[
+  	import com.simian.profile.ProfileEvent;
   	import com.simian.mapper.MapperModel;
   	import mx.collections.ArrayCollection;
   	import com.simian.mapper.Exit;
@@ -49,6 +50,7 @@
  			oRoom.room_notes = room_notes.text; 			
  			oRoom.room_aExits = _aExits.source;
  		}
+ 		dispatchEvent( new ProfileEvent(ProfileEvent.WRITE_PROFILE_LSO) );
  	}
 
 

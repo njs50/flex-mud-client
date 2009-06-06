@@ -1,5 +1,7 @@
 package com.simian.mapper
 {
+	import com.simian.profile.ProfileEvent;
+	
 	
 	[RemoteClass(alias="com.simian.mapper.Map")]		
 	public class Map
@@ -109,6 +111,7 @@ package com.simian.mapper
 			// place it in the x array...
 			xPointer[x] = room;
 			
+			dispatchEvent( new ProfileEvent(ProfileEvent.WRITE_PROFILE_LSO) );
 		}
 
 	}

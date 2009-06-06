@@ -1,6 +1,7 @@
 package com.simian.mapper
 {
 	import com.asfusion.mate.events.Dispatcher;
+	import com.simian.profile.ProfileEvent;
 	
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -252,7 +253,9 @@ package com.simian.mapper
 			
 			if (!bExists) {				
 				var newExit : Exit = new Exit(direction,to_room,_command, _bLinearExit);
-				this.room_aExits.push(newExit); 												
+				this.room_aExits.push(newExit); 
+				// save changes to the map
+				dispatcher.dispatchEvent( new ProfileEvent(ProfileEvent.WRITE_PROFILE_LSO) );																
 			}
 			
 		}

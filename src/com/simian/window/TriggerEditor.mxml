@@ -18,6 +18,7 @@
 
   <mx:Script>
   <![CDATA[
+  	import com.simian.profile.ProfileEvent;
 	  	import com.simian.profile.TriggerGroup;
 	  	import mx.collections.SortField;
 	  	import mx.collections.Sort;
@@ -25,7 +26,7 @@
 	  	import com.simian.profile.Trigger;
 	  	import mx.collections.ArrayCollection;
 	
-		[Bindable]
+		[Bindable (event='triggerUpdated')]
 		public var aTrigger : ArrayCollection = new ArrayCollection(); 
 	
 		[Bindable]
@@ -34,7 +35,7 @@
 		[Bindable]
 		public var aTriggerGroup : ArrayCollection = new ArrayCollection();		
 		
-		[Bindable]		
+		[Bindable (event='triggerUpdated')]		
 		public var editor_trigger : Trigger;
 		
 		private function init() : void {			
@@ -92,20 +93,23 @@
 
   			editor_trigger.name = trigger_name.text;
   			editor_trigger.trigger = trigger_pattern.text;
+  			
   			// if this is a new group
   			if (trigger_group.inputText != null && trigger_group.inputText != trigger_group.selectedLabel) {
   				aTriggerGroup.addItem(new TriggerGroup(trigger_group.inputText));
   				editor_trigger.triggerGroup = aTriggerGroup.getItemAt(aTriggerGroup.length - 1) as TriggerGroup;
   				trigger_group.selectedItem = editor_trigger.triggerGroup;	  				
   			} else editor_trigger.triggerGroup = trigger_group.selectedItem as TriggerGroup;
+  			
   			editor_trigger.bEnabled = trigger_bEnabled.selected;
   			editor_trigger.command = trigger_command.text; 
   			editor_trigger.parse_type = int(trigger_parse_type.selectedValue);
   				  		
-  			triggerList.invalidateList();
-  			
+  			triggerList.invalidateList();  	
   		  	  		  		  
   		  	applyFilter();		
+  		  					
+			dispatchEvent( new ProfileEvent(ProfileEvent.WRITE_PROFILE_LSO) );
   		  	 			  			
   		}
   		

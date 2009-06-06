@@ -22,7 +22,7 @@ package com.simian.mapper {
 		
 		public var bTwoWayExits : Boolean = true;
 		public var bMappingEnabled : Boolean = false;
-		public var bAutoMove : Boolean = false;
+		public var bAutoMove : Boolean = true;
 		public var aMaps : Array;
 		
 		public var selected_room : Room;

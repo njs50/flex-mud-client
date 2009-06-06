@@ -6,6 +6,9 @@ package com.simian.profile {
 	public class ProfileEvent extends Event {
 		
 		// loading and saving profiles
+		
+		public static const WRITE_PROFILE_LSO : String = "writeProfileToLSOEvent";
+		
 		public static const SAVE_PROFILE : String = "saveProfileEvent";
 		public static const LOAD_PROFILE : String = "loadProfileEvent";
 		public static const LOAD_PROFILE_DATA : String = "loadProfileDataEvent";
