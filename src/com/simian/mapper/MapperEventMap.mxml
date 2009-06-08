@@ -69,8 +69,7 @@
 	
 	<EventHandlers type="{PathEvent.UNDO_LAST_STEP}">		
 		<MethodInvoker generator="{MapperModel}" method="undoStep" />
-	</EventHandlers>		
-	
+	</EventHandlers>			
 
 	<EventHandlers type="{TelnetEvent.PARSE_LINE_DATA}">		
 		<MethodInvoker generator="{MapperModel}" method="checkLine" arguments="{event.data}" />

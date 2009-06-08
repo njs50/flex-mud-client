@@ -29,6 +29,13 @@
 			dispatchEvent(telnetEvent);				
 			
 		}
+		
+		private function resetColours() : void {
+			oSettings.defaultFGcolour = 0xffffcc;		
+			oSettings.defaultBGcolour = 0x000033;					
+			oSettings.acColoursLight.source = [0x666666,0x800000,0x008000,0x808000,0x0000cc,0x800080,0x008080,0xcccccc];
+			oSettings.acColoursDark.source  = [0x999999,0xff0000,0x00ff00,0xffff00,0x0099ff,0xff00ff,0x00ffff,0xffffff];			
+		}
 	
 	
 		private function saveSettings() : void {
@@ -104,8 +111,8 @@
 		
 	<mx:HRule width="100%"/>
 	
-	<mx:Button label="Reset Terminal" click="resetTerminal()" />
-	
+	<mx:Button label="Reset Colours" click="resetColours()" />
+	<mx:Button label="Reset Terminal" click="resetTerminal()" />	
 	<mx:Button label="Save Settings" click="saveSettings()" />
 
 				
