@@ -2,6 +2,8 @@ package com.simian.mapper
 {
 	import com.simian.profile.ProfileEvent;
 	
+	import mx.collections.ArrayCollection;
+	
 	
 	[RemoteClass(alias="com.simian.mapper.Map")]		
 	public class Map
@@ -12,11 +14,14 @@ package com.simian.mapper
 		[Bindable]
 		public var map_name : String;
 		
+		[Bindable]
+		public var acBookmarkRooms : ArrayCollection;
 		
 		public function Map(_name:String = '')
 		{
 			oRooms = new Object();
-			map_name = _name;				
+			acBookmarkRooms = new ArrayCollection();				
+			map_name = _name;
 		}
 
 

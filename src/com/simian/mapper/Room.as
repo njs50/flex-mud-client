@@ -35,12 +35,15 @@ package com.simian.mapper
 		public var room_y : int;						
 		public var room_z : int;
 		
+		public var room_colour : uint;
+		
 		public var travel_cost : int = 1;
-				
+		
+		public var bookmark_label : String = '';		
 						
 		private var dispatcher : Dispatcher = new Dispatcher();
 		
-		public function Room(_map:Map = null, _name:String = '',exits_string:String = '',_line1:String = '',_line2:String = '',_line3:String = '', _x : int = 0, _y : int = 0, _z:int = 0)
+		public function Room(_map:Map = null, _name:String = '',exits_string:String = '',_line1:String = '',_line2:String = '',_line3:String = '', _x : int = 0, _y : int = 0, _z:int = 0, bookmark:String = '')
 		{
 
 			// set default properties.
@@ -54,6 +57,8 @@ package com.simian.mapper
 			room_x = _x;
 			room_y = _y;
 			room_z = _z;
+			
+			bookmark_label = bookmark;
 			
 			// set us up the exits
 			room_aExits = new Array();			
@@ -79,7 +84,7 @@ package com.simian.mapper
 
 		public function clickHandler(event:Event) : void {
 
-			// broadcast that the user has selected this room        	
+			// broadcast that the user has selected this room        
         	var mEvent : MapperEvent;       	
 			mEvent = new MapperEvent(MapperEvent.MAPPER_SELECT_ROOM);        			
 			mEvent.room = this;
@@ -138,8 +143,14 @@ package com.simian.mapper
 			}						
 
 			// add in the room box	
-			if (this.aLinkedRooms != null && this.aLinkedRooms.length > 0) thisSprite.graphics.beginFill(0x0000ff);
-			else thisSprite.graphics.beginFill(0x00ff00);			
+			
+			
+			
+			if (this.aLinkedRooms != null && this.aLinkedRooms.length > 0) this.room_colour = 0xffccff;
+			else if (!this.room_colour) this.room_colour = 0xffffcc;	
+									
+			thisSprite.graphics.beginFill(this.room_colour);		
+					
 			thisSprite.graphics.drawRect(join_size,join_size,length,length);			
 			thisSprite.graphics.endFill();
 			

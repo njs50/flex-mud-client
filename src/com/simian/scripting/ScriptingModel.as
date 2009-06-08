@@ -832,7 +832,18 @@ package com.simian.scripting {
 			return '';			
 		}		
 
-				
+
+		public function bookmark(aArguments:Array) : String {										
+			var bookmark: String = aArguments[0];			
+	        var pEvent : MovementEvent;       	
+			
+			// dispatch move event
+			pEvent = new MovementEvent(MovementEvent.MOVE_TO_BOOKMARK);
+			pEvent.room_name = bookmark; 		
+			dispatcher.dispatchEvent(pEvent);
+						
+			return '';
+		}		
 
 		// delay (x seconds, command)
 		public function delay(aArguments:Array) : String {			

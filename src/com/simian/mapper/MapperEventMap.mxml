@@ -43,6 +43,9 @@
 		<MethodInvoker generator="{MapperModel}" method="nextMoveRelativeLocation" arguments="{[event.x,event.y,event.z]}" />
 	</EventHandlers>
 
+	<EventHandlers type="{MovementEvent.MOVE_TO_BOOKMARK}">
+		<MethodInvoker generator="{MapperModel}" method="moveToBookmark" arguments="{event.room_name}" />
+	</EventHandlers>
 
 	<EventHandlers type="{MapperEvent.MAPPER_SELECT_ROOM}">		
 		<MethodInvoker generator="{MapperModel}" method="selectRoom" arguments="{event.room}" />

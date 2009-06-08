@@ -18,6 +18,8 @@
 
  	private var oRoom : Room;
  	
+ 	public var oMapModel : MapperModel;
+ 	
  	[Bindable] private var _aExits : ArrayCollection;
  	
  	private function init() : void { 				 		
@@ -38,8 +40,13 @@
 	 		selected_form_heading.text = oRoom.room_name;
 	 		selected_form_desc.text = oRoom.room_line1+ ' ' + oRoom.room_line2 + ' ' + oRoom.room_line3;	 
 	 		move_cost.text = oRoom.travel_cost.toString();		
-	 		room_notes.text = oRoom.room_notes;	 		 		
-	 		_aExits = new ArrayCollection(oRoom.room_aExits); 		 			
+	 		room_notes.text = oRoom.room_notes;
+	 		bookmark_label.text = oRoom.bookmark_label;	 		 		
+	 		_aExits = new ArrayCollection(oRoom.room_aExits);
+	 		
+	 		if (!oRoom.room_colour) room_colour.selectedColor = 0xffffcc;
+	 		else room_colour.selectedColor = oRoom.room_colour
+	 		 		 			
  		}
  		
  	}
@@ -48,8 +55,17 @@
  		if (oRoom != null) {
  			oRoom.travel_cost = int(move_cost.text);
  			oRoom.room_notes = room_notes.text; 			
- 			oRoom.room_aExits = _aExits.source;
+ 			oRoom.room_aExits = _aExits.source; 			 			
+ 			oRoom.room_colour = room_colour.selectedColor;			
+ 			// bookmarks
+ 			if (bookmark_label.text.length > 0) {
+ 				if (!oRoom.bookmark_label || oRoom.bookmark_label.length == 0) oRoom.oMap.acBookmarkRooms.addItem(oRoom);
+ 			} else {
+ 				if (oRoom.bookmark_label && oRoom.bookmark_label.length > 0) oRoom.oMap.acBookmarkRooms.removeItemAt(oRoom.oMap.acBookmarkRooms.getItemIndex(oRoom));
+ 			} 			
+ 			oRoom.bookmark_label = bookmark_label.text;
  		}
+ 		oMapModel.redrawRoom(oRoom); 		
  		dispatchEvent( new ProfileEvent(ProfileEvent.WRITE_PROFILE_LSO) );
  	}
 
@@ -69,6 +85,11 @@
 	<mx:FormItem label="Name : " width="100%">
 		<mx:Label id="selected_form_heading" />
 	</mx:FormItem>
+	
+	<mx:FormItem label="Bookmark Label : " width="100%">
+		<mx:TextInput id="bookmark_label" />
+	</mx:FormItem>
+	
 
 	<mx:FormItem label="Desc : " width="100%">
 		<mx:TextArea id="selected_form_desc" enabled="false" width="100%" height="60" />	
@@ -77,6 +98,12 @@
 	<mx:FormItem label="Move Cost : " width="100%">
 		<mx:TextInput id="move_cost" />
 	</mx:FormItem>
+
+	<mx:FormItem label="Room Colour : " width="100%">
+		<mx:ColorPicker id="room_colour" />
+	</mx:FormItem>
+
+	
 
 	<mx:FormItem label="Notes : " width="100%">
 		<mx:TextArea id="room_notes" enabled="true" width="100%" height="60" />	

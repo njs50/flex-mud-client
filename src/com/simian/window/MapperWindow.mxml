@@ -168,6 +168,15 @@
   		if (event.room.room_notes != null) mapview.toolTip += '\n' + event.room.room_notes;
   		
   	}
+  	
+  	private function speedWalk(oRoom:Room) : void {
+		// broadcast that the user has selected this room        	
+    	var mEvent : MapperEvent;       	
+		mEvent = new MapperEvent(MapperEvent.MAPPER_MOVE_TO_ROOM);        			
+		mEvent.room = oRoom;
+		dispatchEvent(mEvent);
+		mapTabs.selectedIndex = 0;		  		
+  	}
   
   ]]>  
   </mx:Script>
@@ -223,8 +232,24 @@
 		<window:RoomEditor 
 			xmlns:window="com.simian.window.*"
 			label="Selected Room"
+			oMapModel = "{oMapModel}"
 			id="selectedRoomEditor" />
 
+
+		<mx:VBox label="Bookmarks" styleName="standardPadding">
+			
+			<mx:DataGrid id="bookmarks" dataProvider="{oMapModel.oMap.acBookmarkRooms}" width="100%" height="100%">
+				<mx:columns>
+					<mx:DataGridColumn dataField="bookmark_label" headerText="Bookmark" width="75" />
+					<mx:DataGridColumn dataField="room_name" headerText="Room Name" />
+				</mx:columns>		
+			</mx:DataGrid>
+
+			<mx:HBox width="100%">
+				<mx:Button label="Speed Walk!" click="speedWalk(bookmarks.selectedItem as Room)" />					
+			</mx:HBox>
+			
+		</mx:VBox>
 
 		
 	</mx:TabNavigator>

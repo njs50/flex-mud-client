@@ -41,7 +41,7 @@ package com.simian.mapper {
 		private var move_direction : String = '';
 		private var aQueuedMoves : Array = new Array();				
 		
-		private var bMoveFromMap : Boolean = false;
+		private var bMoveFromMap : Boolean = false;				
 				
 		// vars for path handling	
 		private var aPath : Array = new Array();
@@ -58,6 +58,16 @@ package com.simian.mapper {
 		}
 	
 		
+		public function moveToBookmark(bookmark:String) : void {
+			
+			for each (var oRoom : Room in oMap.acBookmarkRooms) {
+				if (oRoom.bookmark_label == bookmark) {
+					moveToRoom(oRoom);
+					return;
+				}
+			}
+			
+		}
 
 	
 		public function getLayerSprite(layer : MapLayer) : Sprite {
@@ -328,12 +338,11 @@ package com.simian.mapper {
 		}
 		
 		
-		public function moveToRoom(room : Room) : void {
-			// trace('someone clicked ::: ' + room.room_name);
+		public function moveToRoom(room : Room) : void {			
 			
-			if (selected_room != null) {
+			if (room != null) {
 				
-				var aNewPath : Array = shortestPath(current_room,selected_room);				
+				var aNewPath : Array = shortestPath(current_room,room);				
 				
 				if (shortestPath != null) {
 

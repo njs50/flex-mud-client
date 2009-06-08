@@ -9,7 +9,11 @@ package com.simian.mapper {
 		public static const MOVE_LOCATION : String = "newRoomMoveLocation";
 		public static const MOVE_RELATIVE_LOCATION : String = "newRoomMoveRelativeLocation";
 		
+		public static const MOVE_TO_BOOKMARK : String = "moveToBookmarkedLocation";
+		
+		
 		// EVENT DATA				
+		public var room_name : String;
 		public var direction : String;
 		public var x : int;
 		public var y : int;
