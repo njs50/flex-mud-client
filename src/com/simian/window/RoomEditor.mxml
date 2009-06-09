@@ -15,9 +15,11 @@
   	import mx.binding.utils.ChangeWatcher;
   	
   	import com.simian.mapper.Room;
-
+	
+	[Bindable]
  	private var oRoom : Room;
  	
+ 	[Bindable]
  	public var oMapModel : MapperModel;
  	
  	[Bindable] private var _aExits : ArrayCollection;
@@ -36,7 +38,7 @@
  		oRoom = room;
  		
  		if (oRoom != null) {
- 			selected_map_name.text = oRoom.oMap.map_name; 			
+ 						
 	 		selected_form_heading.text = oRoom.room_name;
 	 		selected_form_desc.text = oRoom.room_line1+ ' ' + oRoom.room_line2 + ' ' + oRoom.room_line3;	 
 	 		move_cost.text = oRoom.travel_cost.toString();		
@@ -59,9 +61,14 @@
  			oRoom.room_colour = room_colour.selectedColor;			
  			// bookmarks
  			if (bookmark_label.text.length > 0) {
- 				if (!oRoom.bookmark_label || oRoom.bookmark_label.length == 0) oRoom.oMap.acBookmarkRooms.addItem(oRoom);
+ 				if (!oRoom.bookmark_label || oRoom.bookmark_label.length == 0) {
+ 					 oMapModel.oMap.acBookmarkRooms.addItem(oRoom);
+ 				}
  			} else {
- 				if (oRoom.bookmark_label && oRoom.bookmark_label.length > 0) oRoom.oMap.acBookmarkRooms.removeItemAt(oRoom.oMap.acBookmarkRooms.getItemIndex(oRoom));
+ 				if (oRoom.bookmark_label && oRoom.bookmark_label.length > 0) {
+ 					var bookmark_index : int = oMapModel.oMap.acBookmarkRooms.getItemIndex(oRoom);
+ 					if (bookmark_index >= 0) oMapModel.oMap.acBookmarkRooms.removeItemAt(bookmark_index);
+ 				}
  			} 			
  			oRoom.bookmark_label = bookmark_label.text;
  		}
@@ -78,10 +85,6 @@
   </mx:Script>
 
 
-	<mx:FormItem label="Map : " width="100%">
-		<mx:Label id="selected_map_name" />
-	</mx:FormItem>			
-	
 	<mx:FormItem label="Name : " width="100%">
 		<mx:Label id="selected_form_heading" />
 	</mx:FormItem>

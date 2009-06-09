@@ -17,7 +17,6 @@ package com.simian.mapper
 		private static const join_size : int = 5;
 		
 		// the map this room belongs to
-		public var oMap : Map;
 		
 		// instances of this room in other maps;
 		public var aLinkedRooms : Array;
@@ -43,13 +42,10 @@ package com.simian.mapper
 						
 		private var dispatcher : Dispatcher = new Dispatcher();
 		
-		public function Room(_map:Map = null, _name:String = '',exits_string:String = '',_line1:String = '',_line2:String = '',_line3:String = '', _x : int = 0, _y : int = 0, _z:int = 0, bookmark:String = '')
+		public function Room(_name:String = '',exits_string:String = '',_line1:String = '',_line2:String = '',_line3:String = '', _x : int = 0, _y : int = 0, _z:int = 0, bookmark:String = '')
 		{
 
 			// set default properties.
-
-			oMap = _map;			
-			
 			room_name = _name;
 			room_line1 = _line1;
 			room_line2 = _line2;
@@ -143,11 +139,8 @@ package com.simian.mapper
 			}						
 
 			// add in the room box	
-			
-			
-			
 			if (this.aLinkedRooms != null && this.aLinkedRooms.length > 0) this.room_colour = 0xffccff;
-			else if (!this.room_colour) this.room_colour = 0xffffcc;	
+			else if (!this.room_colour) this.room_colour = 0xffffcc;				
 									
 			thisSprite.graphics.beginFill(this.room_colour);		
 					

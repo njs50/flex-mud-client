@@ -17,8 +17,7 @@ package com.simian.profile {
 	import mx.collections.ArrayCollection;
 	
 	
-	[Bindable]
-		
+	[Bindable]		
 	public class UserModel {
 
 		// array of aliases						
@@ -26,8 +25,7 @@ package com.simian.profile {
 		private var _aTrigger : ArrayCollection;
 		private var _aTriggerGroup : ArrayCollection;
 		private var _aWindowSettings	: Array;		
-		private var _telnetSettings : TelnetSettings
-				
+		private var _telnetSettings : TelnetSettings					
 		private var _aMaps : Array;
 		
 		private var bDelayProfileWrite : Boolean = false;
@@ -94,8 +92,7 @@ package com.simian.profile {
   			}
 			return this._aTriggerGroup;
 		}
-		
-				
+					
 		public function set aMaps(a:Array) : void {
 			this._aMaps = a;
 		}

@@ -833,8 +833,16 @@ package com.simian.scripting {
 		}		
 
 
-		public function bookmark(aArguments:Array) : String {										
+		public function bookmark(aArguments:Array) : String {
+			
 			var bookmark: String = aArguments[0];			
+			aArguments.pop();
+			
+			// handle spaces in string
+			for each (var s : String in aArguments) {
+				bookmark += ' ' + s;
+			} 													
+						
 	        var pEvent : MovementEvent;       	
 			
 			// dispatch move event

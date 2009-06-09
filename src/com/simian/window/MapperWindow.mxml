@@ -83,14 +83,14 @@
  	private function currentRoomChange(e:Event = null) : void {
  		
  		// if they are still on the initial map see if we can find them in a saved map
- 		if(oMapModel.current_room.oMap.map_name == "temporary map") oMapModel.findMe();
+ 		if(oMapModel.oMap.map_name == "temporary map") oMapModel.findMe();
  		
  		if (oMapModel.current_room != null) {
  			 			
  			mapview.changeRoom();
  			
  			// handle map change if we've moved to a new map...
- 			if (selected_map.selectedItem != oMapModel.current_room.oMap) selected_map.selectedItem = oMapModel.current_room.oMap;
+ 			if (selected_map.selectedItem != oMapModel.oMap) selected_map.selectedItem = oMapModel.oMap;
  			
  		}
  		

@@ -190,7 +190,7 @@ package com.simian.mapper {
 				aMaps.push(oNewMap);  
 				
 				var oldLinkRoom : Room = current_room;
-				var newLinkRoom : Room = new Room(oNewMap,current_room.room_name,'',current_room.room_line1,current_room.room_line2,current_room.room_line3,0,0,0);
+				var newLinkRoom : Room = new Room(current_room.room_name,'',current_room.room_line1,current_room.room_line2,current_room.room_line3,0,0,0);
 													
 				// change model details (to switch to the new map)
 				oMap = oNewMap;				
@@ -558,7 +558,7 @@ package com.simian.mapper {
 				}
 				
 				var expectedRoom : Room = oMap.getRoom(current_x,current_y,current_z);
-				var newRoom : Room = new Room(oMap,oRoomCheck[1],oRoomCheck[2],oRoomCheck[3],oRoomCheck[4],oRoomCheck[5],current_x,current_y,current_z);
+				var newRoom : Room = new Room(oRoomCheck[1],oRoomCheck[2],oRoomCheck[3],oRoomCheck[4],oRoomCheck[5],current_x,current_y,current_z);
 				
 				
 				// if this is a new room add it to the matrix

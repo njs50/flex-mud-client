@@ -62,10 +62,10 @@ package com.simian.mapper
 
 		
 		public function changeLayer(new_height : int) : void {
-			if (oMapModel.current_room != null && oMapModel.current_room.oMap.oRooms[new_height] != null) {
+			if (oMapModel.current_room != null && oMapModel.oMap.oRooms[new_height] != null) {
 				map_current_height = new_height; 
 				if (current_layer_sprite != null) mapSprite.removeChild(current_layer_sprite);													
-				current_layer_sprite = oMapModel.getLayerSprite(oMapModel.current_room.oMap.oRooms[new_height]); 					
+				current_layer_sprite = oMapModel.getLayerSprite(oMapModel.oMap.oRooms[new_height]); 					
 				mapSprite.addChild(current_layer_sprite);	
 				resizeScrollBars();				
 			}				
@@ -79,8 +79,8 @@ package com.simian.mapper
 				var bChangeSprite : Boolean = false;
 
 				// make sure we are still on the right map, if we've changed then update the layer
-				if (map != oMapModel.current_room.oMap) {
-					map = oMapModel.current_room.oMap;
+				if (map != oMapModel.oMap) {
+					map = oMapModel.oMap;
 					bChangeSprite = true;	
 				}
 															
